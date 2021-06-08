@@ -1,0 +1,42 @@
+# GitHub Action for PHP with extensions
+name: Windows
+
+on: [push, pull_request]
+
+jobs:
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        operating-system: [windows-latest]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build PHP 8-NTS with libuv and ext-uv
+      run: .\cmd\compile_x64.cmd
+
+    - name: Run tests
+      shell: cmd
+      run: .\cmd\windows_run_test.cmd
+
+  windows_ts:
+    name: Windows Thread Safe
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        operating-system: [windows-latest]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build PHP 8-TS with libuv and ext-uv
+      run: .\cmd\compile_x64-ts.cmd
+
+    - name: Run tests
+      run: .\cmd\windows_run_test-ts.cmd

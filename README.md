@@ -1,24 +1,26 @@
-# php-uv
+# ext-uv
 
-[![Build Status](https://secure.travis-ci.org/bwoebi/php-uv.png)](http://travis-ci.org/bwoebi/php-uv)
+[![Linux](https://github.com/symplely/ext-uv/actions/workflows/Linux.yml/badge.svg)](https://github.com/symplely/ext-uv/actions/workflows/Linux.yml)[![Windows](https://github.com/symplely/ext-uv/actions/workflows/Windows.yml/badge.svg)](https://github.com/symplely/ext-uv/actions/workflows/Windows.yml)[![macOS](https://github.com/symplely/ext-uv/actions/workflows/macOS.yml/badge.svg)](https://github.com/symplely/ext-uv/actions/workflows/macOS.yml)
 
-Interface to libuv for php.
+Interface to **libuv** for php.
 
-# Install
+## Compile
 
-## \*nix
+___Manually___
+
+For **Linux**
 
 ```bash
-git clone https://github.com/bwoebi/php-uv.git
-cd php-uv
+git clone https://github.com/symplely/ext-uv.git
+cd ext-uv
 phpize
-./configure
+./configure --with-uv=$(readlink -f `pwd`/libuv)
 make
 make install
 # add `extension=uv.so` to your php.ini
 ```
 
-__Automated__
+___Automated___
 
 For **Debian** like distributions, Ubuntu...
 
@@ -39,7 +41,7 @@ pecl channel-update pecl.php.net
 pecl install uv-beta
 ```
 
-## Windows
+### Windows 7.x
 
 Windows builds for stable PHP versions are available [from PECL](https://pecl.php.net/package/uv).
 
@@ -62,7 +64,7 @@ echo extension=php_sockets.dll >> php.ini
 echo extension=php_uv.dll >> php.ini
 ```
 
-# Examples
+## Examples
 
 see examples and tests directory.
 
@@ -95,25 +97,25 @@ uv_tcp_connect($c, uv_ip4_addr('0.0.0.0',8888), function($stream, $stat){
 uv_run();
 ````
 
-# Original Author
+### Original Author
 
 * Shuhei Tanuma
 
-# Current Maintainer
+### Current Maintainer
 
 * Bob Weinand
 
-# License
+## License
 
 PHP License
 
-# Documentation
+## Documentation
 
 Use your favorite **IDE** and pull in the provided [**stubs**](https://github.com/amphp/ext-uv/tree/master/stub).
 
 For deeper usage understanding, see the online [book](https://nikhilm.github.io/uvbook/index.html) for a full tutorial overview.
 
-# Overview of __libuv__
+### Overview of __libuv__
 
 ## Design
 

@@ -45,3 +45,7 @@ tests/*.log
 tests/*.php
 tests/*.sh
 tests/*.out
+.vscode/c_cpp_properties.json
+.vscode/settings.json
+php-sdk-binary-tools-php-sdk-2.2.0/*
+php-sdk/*
