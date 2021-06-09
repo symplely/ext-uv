@@ -525,7 +525,7 @@ static php_socket_t php_uv_zval_to_fd(zval *ptr)
 {
 	php_socket_t fd = -1;
 	php_stream *stream;
-#if !defined(PHP_WIN32) || (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS))
+#if !defined(PHP_WIN32) || (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS)) || PHP_VERSION_ID >= 80000
 	php_socket *socket;
 #endif
 	/* TODO: is this correct on windows platform? */
