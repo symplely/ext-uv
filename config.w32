@@ -9,7 +9,7 @@ if (PHP_UV != "no") {
 	}
 
 	if (CHECK_HEADER_ADD_INCLUDE("uv.h", "CFLAGS_UV", PHP_UV + "\\include")
-		&& (CHECK_LIB("uv_a.lib", "uv", PHP_UV) || CHECK_LIB("libuv.lib", "uv", PHP_UV))) {
+		&& CHECK_LIB("uv_a.lib;uv.lib;libuv.lib", "uv", PHP_UV)) {
 		EXTENSION('uv', 'php_uv.c uv.c', PHP_UV_SHARED);
 	} else {
 		WARNING("uv not enabled; libraries and/or headers not found");
