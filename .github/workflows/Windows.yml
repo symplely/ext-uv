@@ -17,7 +17,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build PHP 8-NTS with libuv and ext-uv
-      run: .\cmd\compile_x64.cmd --php ${{ matrix.php }} --shared
+      run: .\cmd\compile_x64.cmd --php ${{ matrix.php }}
 
     - name: Run tests
       shell: cmd
@@ -36,7 +36,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build PHP 8-TS with libuv and ext-uv
-      run: .\cmd\compile_x64-ts.cmd --php ${{ matrix.php }} --shared
+      run: .\cmd\compile_x64-ts.cmd --php ${{ matrix.php }}
 
     - name: Run tests
       run: .\cmd\windows_run_test-ts.cmd --php ${{ matrix.php }}
