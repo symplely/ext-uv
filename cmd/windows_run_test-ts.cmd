@@ -1,11 +1,14 @@
 @echo off
+if not defined PHP_VER set PHP_VER=8.0.7
 call cmd\getopt.bat %*
 IF EXIST php-sdk\phpdev\vs16\x64\php-%PHP_VER%\x64\Release_TS\php-%PHP_VER%\php.exe (
   cd php-sdk\phpdev\vs16\x64\php-%PHP_VER%\x64\Release_TS\php-%PHP_VER%
   IF EXIST ..\pecl-%PHP_VER%\php_uv.dll (
     copy /Y ..\pecl-%PHP_VER%\php_uv.dll ext\
-    copy /Y php.ini-production php.ini
-    echo extension=uv >> php.ini
+    IF NOT EXIST php.ini (
+      copy /Y php.ini-production php.ini
+      echo extension=uv >> php.ini
+    )
   )
 
   php -m

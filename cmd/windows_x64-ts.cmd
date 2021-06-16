@@ -1,6 +1,5 @@
 @echo off
 if not defined PHP_VER set PHP_VER=8.0.7
-if not defined LIBUV_VER set LIBUV_VER=v1.41.1
 if not defined UV_SHARED set UV_SHARED=--with-uv
 
 IF NOT EXIST php-sdk (
@@ -26,7 +25,7 @@ set CRT=vs16
 set ARCH=x64
 copy /Y ..\cmd\phpsdk_setshell.bat bin\phpsdk_setshell.bat
 bin\phpsdk_setshell.bat vs16 x64 && bin\phpsdk_setvars.bat && bin\phpsdk_dumpenv.bat && bin\phpsdk_buildtree.bat phpdev && cd php-%PHP_VER% && IF NOT EXIST config.nice (..\..\..\..\bin\phpsdk_deps -u --no-backup) && IF NOT EXIST "..\deps\include\uv" (
-  cd .. && curl -L https://github.com/symplely/libuv/releases/download/libuv-%LIBUV_VER%-windows/libuv-%LIBUV_VER%.zip --output libuv-%LIBUV_VER%.zip && unzip -xoq libuv-%LIBUV_VER%.zip && copy /Y libuv-%LIBUV_VER%\bin\* deps\bin\ && copy /Y libuv-%LIBUV_VER%\include\* deps\include\ && mkdir deps\include\uv && copy /Y libuv-%LIBUV_VER%\include\uv\* deps\include\uv\ && copy /Y libuv-%LIBUV_VER%\lib\* deps\lib\ && del libuv-%LIBUV_VER%.zip && rmdir /S /Q libuv-%LIBUV_VER% && copy /Y "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\UserEnv.Lib" deps\lib\ && copy /Y "C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\UserEnv.h" deps\include\ && cd php-%PHP_VER% && buildconf --add-modules-dir=..\pecl\ && configure --enable-cli %UV_SHARED% --enable-sockets && nmake snap && cd ..\..\..\..\..
+  cd .. && ..\..\..\..\cmd\libuv_build.cmd && cd php-%PHP_VER% && buildconf --add-modules-dir=..\pecl\ && configure --enable-cli %UV_SHARED% --enable-sockets && nmake snap && cd ..\..\..\..\.. && if EXIST config.w32.bak ( ren config.w32 config.w32.shared && ren config.w32.bak config.w32)
 ) else (
-  buildconf --force --add-modules-dir=..\pecl\ && configure --enable-cli %UV_SHARED% --enable-sockets && nmake snap && cd ..\..\..\..\..
+  buildconf --force --add-modules-dir=..\pecl\ && configure --enable-cli %UV_SHARED% --enable-sockets && nmake snap && cd ..\..\..\..\.. && if EXIST config.w32.bak ( ren config.w32 config.w32.shared && ren config.w32.bak config.w32)
 )

@@ -49,3 +49,18 @@ tests/*.out
 .vscode/settings.json
 php-sdk-binary-tools-php-sdk-2.2.0/*
 php-sdk/*
+
+cmake-build-debug/
+
+*.xcodeproj
+*.xcworkspace
+
+# make dist output
+libuv-*.tar.*
+*.cmake
+*.rule
+*.stamp
+*.depend
+CMakeFiles/*
+CMakeCache.txt
+DartConfiguration.tcl
