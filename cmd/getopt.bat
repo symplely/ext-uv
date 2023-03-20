@@ -14,9 +14,5 @@ shift
 goto parse
 :endparse
 if not defined LIBUV_VER (
-  if EXIST "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community" (
-    set LIBUV_VER=1.41.0
-  ) else (
-    set LIBUV_VER=1.41.1
-  )
+    set LIBUV_VER=1.44.2
 )

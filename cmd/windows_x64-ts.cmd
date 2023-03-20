@@ -1,9 +1,9 @@
 @echo off
-if not defined PHP_VER set PHP_VER=8.0.7
+if not defined PHP_VER set PHP_VER=8.2.4
 if not defined UV_SHARED set UV_SHARED=--with-uv
 
 IF NOT EXIST php-sdk (
-  curl -L https://github.com/microsoft/php-sdk-binary-tools/archive/refs/tags/php-sdk-2.2.0.tar.gz | tar xzf - && ren php-sdk-binary-tools-php-sdk-2.2.0 php-sdk
+  curl -L https://github.com/php/php-sdk-binary-tools/archive/refs/tags/php-sdk-2.2.0.tar.gz | tar xzf - && ren php-sdk-binary-tools-php-sdk-2.2.0 php-sdk
 )
 
 IF NOT EXIST php-sdk\phpdev\vs16\x64 (mkdir php-sdk\phpdev\vs16\x64)
@@ -11,8 +11,11 @@ IF NOT EXIST php-sdk\phpdev\vs16\x64\pecl (mkdir php-sdk\phpdev\vs16\x64\pecl)
 IF NOT EXIST php-sdk\phpdev\vs16\x64\pecl\uv (mklink /j "php-sdk\phpdev\vs16\x64\pecl\uv" .)
 
 cd php-sdk\phpdev\vs16\x64
-IF NOT EXIST php-%PHP_VER% (curl -L https://github.com/php/php-src/archive/refs/tags/php-%PHP_VER%.tar.gz | tar xzf -)
 IF EXIST php-src-php-%PHP_VER% ren php-src-php-%PHP_VER% php-%PHP_VER%
+IF NOT EXIST php-%PHP_VER% (
+    curl -L https://github.com/php/php-src/archive/refs/tags/php-%PHP_VER%.tar.gz | tar xzf -
+    IF EXIST php-src-php-%PHP_VER% ren php-src-php-%PHP_VER% php-%PHP_VER%
+)
 
 cd ..\..\..
 set "VSCMD_START_DIR=%CD%"
