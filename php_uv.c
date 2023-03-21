@@ -297,10 +297,12 @@ static int uv_parse_arg_object(zval *arg, zval **dest, int check_null, zend_clas
 #if !defined(PHP_WIN32) && !(defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS))
 # if PHP_VERSION_ID >= 80000
 __attribute__((weak)) zend_class_entry *socket_ce = NULL;
-# else
+# endif
+#endif
+
+#if !defined(PHP_WIN32) && PHP_VERSION_ID < 80000
 int (*php_sockets_le_socket_ptr)(void) = NULL;
 int php_sockets_le_socket(void) __attribute__((weak));
-# endif
 #endif
 
 /* objects */

@@ -17,11 +17,9 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Build PHP ${{ matrix.php }}-NTS with libuv and ext-uv
-      shell: cmd
-      run: .\cmd\compile_x64.cmd --php ${{ matrix.php }}
+      run: .\cmd\compile_x64.bat --php ${{ matrix.php }}
 
     - name: Run tests
-      shell: cmd
       run: .\cmd\windows_run_test.bat --php ${{ matrix.php }}
 
   windows_ts:
@@ -37,9 +35,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Build PHP ${{ matrix.php }}-TS with libuv and ext-uv
-      shell: cmd
       run: .\cmd\compile_x64-ts.bat --php ${{ matrix.php }}
 
     - name: Run tests
-      shell: cmd
       run: .\cmd\windows_run_test-ts.bat --php ${{ matrix.php }}
