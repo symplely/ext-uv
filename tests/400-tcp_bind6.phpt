@@ -1,5 +1,7 @@
 --TEST--
-Check for tcp bind
+Check for tcp bind6
+--SKIPIF--
+<?php if (getenv('GITHUB_ACTIONS') !== false) print "skip"; ?>
 --FILE--
 <?php
 $tcp = uv_tcp_init();
