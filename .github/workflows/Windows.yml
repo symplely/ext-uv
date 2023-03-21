@@ -22,7 +22,7 @@ jobs:
 
     - name: Run tests
       shell: cmd
-      run: .\cmd\windows_run_test.cmd --php ${{ matrix.php }}
+      run: .\cmd\windows_run_test.bat --php ${{ matrix.php }}
 
   windows_ts:
     name: Windows Thread Safe
@@ -38,8 +38,8 @@ jobs:
 
     - name: Build PHP ${{ matrix.php }}-TS with libuv and ext-uv
       shell: cmd
-      run: .\cmd\compile_x64-ts.cmd --php ${{ matrix.php }}
+      run: .\cmd\compile_x64-ts.bat --php ${{ matrix.php }}
 
     - name: Run tests
       shell: cmd
-      run: .\cmd\windows_run_test-ts.cmd --php ${{ matrix.php }}
+      run: .\cmd\windows_run_test-ts.bat --php ${{ matrix.php }}

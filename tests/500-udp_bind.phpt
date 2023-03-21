@@ -5,7 +5,7 @@ Check for udp bind
 $udp = uv_udp_init();
 uv_udp_bind($udp, uv_ip4_addr('127.0.0.1', 10000));
 
-uv_udp_recv_start($udp, function($stream, $status, $buffer) {
+uv_udp_recv_start($udp, function($stream, $buffer) {
     echo "recv: " .  $buffer;
 
     uv_close($stream);

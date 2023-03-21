@@ -18,7 +18,7 @@ $addrinfo = uv_tcp_getsockname($tcp);
 
 $c = uv_tcp_init();
 $data = uv_ip6_addr($addrinfo['address'], $addrinfo['port']);
-uv_tcp_connect6($c, $data, function($client, $stat) {
+uv_tcp_connect($c, $data, function($client, $stat) {
     if ($stat == 0) {
         uv_write($client,"Hello",function($socket, $stat){
             uv_close($socket, function() { });

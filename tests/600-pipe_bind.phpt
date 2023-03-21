@@ -16,8 +16,8 @@ $ret = uv_pipe_bind($a, PIPE_PATH);
 uv_listen($a, 8192, function($stream) {
     $pipe = uv_pipe_init(uv_default_loop(), 0);
     uv_accept($stream, $pipe);
-    uv_read_start($pipe,function($pipe, $data) use ($stream) {
-        if ($data === \UV::EOF) {
+    uv_read_start($pipe,function($pipe, $result, $data) use ($stream) {
+        if ($result === \UV::EOF) {
             return;
         }
 
