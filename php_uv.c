@@ -1681,7 +1681,7 @@ static void php_uv_shutdown_cb(uv_shutdown_t* handle, int status)
 static void php_uv_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf)
 {
 	zval retval = {0};
-	zval params[2] = {0};
+	zval params[3] = {0};
 	php_uv_t *uv = (php_uv_t *) handle->data;
 	TSRMLS_FETCH_FROM_CTX(uv->thread_ctx);
 
@@ -1693,17 +1693,20 @@ static void php_uv_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* b
 		PHP_UV_DEBUG_OBJ_ADD_REFCOUNT(uv_read_cb, uv);
 	}
 
-	if (nread > 0) {
-		ZVAL_STRINGL(&params[1], buf->base, nread);
-	} else {
-		ZVAL_LONG(&params[1], nread);
-	}
+	ZVAL_LONG(&params[1], nread);
 
-	php_uv_do_callback2(&retval, uv, params, 2, PHP_UV_READ_CB TSRMLS_CC);
+    if (nread > 0) {
+        ZVAL_STRINGL(&params[2], buf->base, nread);
+    } else {
+        ZVAL_NULL(&params[2]);
+    }
+
+    php_uv_do_callback2(&retval, uv, params, 3, PHP_UV_READ_CB TSRMLS_CC);
 
 	PHP_UV_DEBUG_OBJ_DEL_REFCOUNT(uv_read_cb, uv);
 	zval_ptr_dtor(&params[0]);
 	zval_ptr_dtor(&params[1]);
+	zval_ptr_dtor(&params[2]);
 
 	zval_ptr_dtor(&retval);
 
@@ -3941,7 +3944,7 @@ PHP_FUNCTION(uv_close)
 }
 /* }}} */
 
-/* {{{ proto void uv_read_start(UVStream $handle, callable(UVStream $handle, string|long $read) $callback)
+/* {{{ proto void uv_read_start(UVStream $handle, callable(UVStream $handle, long, string $read) $callback)
 */
 PHP_FUNCTION(uv_read_start)
 {
