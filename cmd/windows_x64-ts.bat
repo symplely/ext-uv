@@ -3,7 +3,7 @@ if not defined PHP_VER set PHP_VER=8.2.4
 if not defined UV_SHARED set UV_SHARED=--with-uv
 
 IF NOT EXIST php-sdk (
-  curl -L https://github.com/php/php-sdk-binary-tools/archive/refs/tags/php-sdk-2.2.0.tar.gz | tar xzf - && ren php-sdk-binary-tools-php-sdk-2.2.0 php-sdk
+  curl -L https://github.com/microsoft/php-sdk-binary-tools/archive/refs/tags/php-sdk-2.2.0.tar.gz | tar xzf - && ren php-sdk-binary-tools-php-sdk-2.2.0 php-sdk
 )
 
 IF NOT EXIST php-sdk\phpdev\vs16\x64 (mkdir php-sdk\phpdev\vs16\x64)

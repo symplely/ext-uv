@@ -6,6 +6,9 @@ on: [push, pull_request]
 jobs:
   windows:
     name: Windows
+    defaults:
+      run:
+        shell: cmd
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -24,6 +27,9 @@ jobs:
 
   windows_ts:
     name: Windows Thread Safe
+    defaults:
+      run:
+        shell: cmd
     runs-on: windows-latest
     strategy:
       fail-fast: false
