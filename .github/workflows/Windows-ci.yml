@@ -1,0 +1,41 @@
+# GitHub Action for PHP with extensions
+name: Windows CI
+
+on: [push, pull_request]
+
+jobs:
+  windows:
+    name: Windows
+    defaults:
+      run:
+        shell: cmd
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['7.4', '8.0', '8.1', '8.2']
+        arch: [x64]
+        threads: [ts, nts]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup PHP
+      id: setup-php
+      uses: cmb69/setup-php-sdk@v0.6
+      with:
+        version: ${{matrix.version}}
+        arch: ${{matrix.arch}}
+        ts: ${{matrix.threads}}
+    - name: Enable Developer Command Prompt
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{matrix.arch}}
+        toolset: ${{steps.setup-php.outputs.toolset}}
+    - name: phpize
+      run: phpize
+    - name: configure
+      run: configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}}
+    - name: make
+      run: nmake
+    - name: test
+      run: nmake test TESTS=tests

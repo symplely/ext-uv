@@ -24,7 +24,7 @@ jobs:
           extensions: curl, fileinfo, mbstring, openssl, simplexml, dom, sockets, sodium, ffi, opcache
       - name: Brew install
         run: |
-          brew install automake libuv
+          brew install automake
 
       - name: Build ext-uv
         run: |

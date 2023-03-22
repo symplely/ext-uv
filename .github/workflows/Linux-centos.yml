@@ -8,10 +8,8 @@ jobs:
       fail-fast: false
       matrix:
         container:
-        - {os: 'ubuntu:18.04', cli: 'DEBIAN_FRONTEND=noninteractive apt-get', dev: 'libuv1-dev php-dev', dep: 'apt-get install software-properties-common', pre: 'add-apt-repository ppa:ondrej/php -y'}
-        - {os: 'ubuntu:latest', cli: 'apt-get', dev: 'libuv1-dev php-dev', dep: 'apt-get install software-properties-common', pre: 'add-apt-repository ppa:ondrej/php -y'}
-        - {os: 'centos:7', cli: 'yum', dev: 'libuv-devel php-devel', dep: 'yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm https://rpms.remirepo.net/enterprise/remi-release-7.rpm', pre: "yum-config-manager --disable 'remi-php*' && yum-config-manager --enable remi-php82"}
-        - {os: 'centos:latest', cli: 'dnf', dev: 'libuv-devel php-devel', dep: 'dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm https://rpms.remirepo.net/enterprise/remi-release-8.rpm', pre: 'dnf module reset php && dnf module install php:remi-8.2 -y'}
+        - {os: 'centos:7', cli: 'yum', dev: 'libuv-devel php-devel which', dep: 'yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm https://rpms.remirepo.net/enterprise/remi-release-7.rpm', pre: "yum-config-manager --disable 'remi-php*' && yum-config-manager --enable remi-php82"}
+        - {os: 'centos:latest', cli: 'dnf', dev: 'libuv-devel php-devel which', dep: 'dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm https://rpms.remirepo.net/enterprise/remi-release-8.rpm', pre: 'dnf module reset php && dnf module install php:remi-8.2 -y'}
     runs-on: ubuntu-latest
     container: ${{ matrix.container.os }}
 
