@@ -17,7 +17,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build PHP ${{ matrix.php }}-NTS with libuv and ext-uv
       run: .\cmd\compile_x64.bat --php ${{ matrix.php }}
@@ -30,7 +30,7 @@ jobs:
     defaults:
       run:
         shell: cmd
-    runs-on: windows-latest
+    runs-on: windows-2019
     strategy:
       fail-fast: false
       matrix:
@@ -38,7 +38,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build PHP ${{ matrix.php }}-TS with libuv and ext-uv
       run: .\cmd\compile_x64-ts.bat --php ${{ matrix.php }}

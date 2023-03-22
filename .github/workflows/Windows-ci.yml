@@ -26,6 +26,21 @@ jobs:
         version: ${{matrix.version}}
         arch: ${{matrix.arch}}
         ts: ${{matrix.threads}}
+    - name: Fetch libuv dependencies
+      run: |
+        curl -L https://github.com/libuv/libuv/archive/refs/tags/v1.44.2.zip --output libuv-%LIBUV_VER%.zip
+        unzip -xoq libuv-%LIBUV_VER%.zip
+        cd libuv-%LIBUV_VER%
+        cmake .
+        msbuild INSTALL.vcxproj /p:Configuration=Release
+        mkdir ..\deps\include\uv
+        copy /Y include\uv\* ..\deps\include\uv\
+        copy /Y include\* ..\deps\include\
+        copy /Y Release\uv_a.lib ..\deps\lib\
+        copy /Y Release\uv.lib ..\deps\lib\
+        copy /Y Release\uv.exp ..\deps\lib\
+        copy /Y Release\uv.dll ..\deps\bin\
+        cd ..
     - name: Enable Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1
       with:
@@ -34,8 +49,8 @@ jobs:
     - name: phpize
       run: phpize
     - name: configure
-      run: configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}}
+      run: configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}} --enable-cli --enable-sockets
     - name: make
-      run: nmake
+      run: nmake snap
     - name: test
-      run: nmake test TESTS=tests
+      run: nmake test TESTS="--show-diff tests"
