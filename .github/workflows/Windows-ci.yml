@@ -22,50 +22,48 @@ jobs:
       uses: actions/checkout@v3
     - name: Setup PHP
       id: setup-php
-      uses: cmb69/setup-php-sdk@v0.6
+      uses: cmb69/setup-php-sdk@v0.7
       with:
         version: ${{matrix.version}}
         arch: ${{matrix.arch}}
         ts: ${{matrix.threads}}
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v1.0.2
-    - name: Enable Developer Command Prompt
-      uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: ${{matrix.arch}}
-        toolset: ${{steps.setup-php.outputs.toolset}}
     - name: Fetch & build libuv ${{matrix.libuv}} library dependency
       run: |
-        IF NOT EXIST php-dev\vs16\x64\pecl\uv (mklink /j "php-dev\vs16\x64\pecl\uv" .)
         curl -L https://github.com/libuv/libuv/archive/refs/tags/v${{matrix.libuv}}.zip --output libuv-${{matrix.libuv}}.zip
         unzip -xoq libuv-${{matrix.libuv}}.zip
         cd libuv-${{matrix.libuv}}
         cmake .
         msbuild INSTALL.vcxproj /p:Configuration=Release
-        mkdir ..\php-dev\deps\include\uv
-        copy /Y include\uv\* ..\php-dev\deps\include\uv\
-        copy /Y include\* ..\php-dev\deps\include\
-        copy /Y Release\uv_a.lib ..\php-dev\deps\lib\
-        copy /Y Release\uv.lib ..\php-dev\deps\lib\
-        copy /Y Release\uv.exp ..\php-dev\deps\lib\
-        copy /Y Release\uv.dll ..\php-dev\deps\bin\
-        dir ..\php-dev\deps\lib\
+        mkdir ..\..\deps\include\uv
+        copy /Y include\uv\* ..\..\deps\include\uv\
+        copy /Y include\* ..\..\deps\include\
+        copy /Y Release\uv_a.lib ..\..\deps\lib\
+        copy /Y Release\uv.lib ..\..\deps\lib\
+        copy /Y Release\uv.exp ..\..\deps\lib\
+        copy /Y Release\uv.dll ..\..\deps\bin\
+        dir ..\..\deps\lib\
+        dir ..\..\deps\
         cd ..
+    - name: Enable Developer Command Prompt
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{matrix.arch}}
+        toolset: ${{steps.setup-php.outputs.toolset}}
     - name: phpize
       run: phpize
     - name: configure ts
       if: (matrix.threads == 'ts')
       run: |
-        dir php-dev
-        dir php-sdk
-        configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}} --enable-cli --enable-sockets
+        configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}}
         dir x64\Release_TS
     - name: configure nts
       if: (matrix.threads == 'nts')
       run:  |
         dir php-dev
         dir php-sdk
-        configure --with-uv --disable-zts --with-prefix=${{steps.setup-php.outputs.prefix}} --enable-cli --enable-sockets
+        configure --with-uv --disable-zts --with-prefix=${{steps.setup-php.outputs.prefix}}
         dir x64\Release_NTS
     - name: make
       run: nmake
