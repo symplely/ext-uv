@@ -27,6 +27,8 @@ jobs:
         version: ${{matrix.version}}
         arch: ${{matrix.arch}}
         ts: ${{matrix.threads}}
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1.0.2
     - name: Fetch & build libuv ${{matrix.libuv}} library dependency
       run: |
         dir .
@@ -38,7 +40,6 @@ jobs:
         mkdir ..\deps\include\uv
         copy /Y include\uv\* ..\deps\include\uv\
         copy /Y include\* ..\deps\include\
-        copy /Y Release\uv_a.lib ..\deps\lib\
         copy /Y Release\uv.lib ..\deps\lib\
         copy /Y Release\uv.exp ..\deps\lib\
         copy /Y Release\uv.dll ..\deps\bin\
@@ -50,8 +51,12 @@ jobs:
         toolset: ${{steps.setup-php.outputs.toolset}}
     - name: phpize
       run: phpize
-    - name: configure
+    - name: configure ts
+      if: (matrix.threads == 'ts')
       run: configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}} --enable-cli --enable-sockets
+    - name: configure nts
+      if: (matrix.threads == 'nts')
+      run: configure --with-uv --disable-zts --with-prefix=${{steps.setup-php.outputs.prefix}} --enable-cli --enable-sockets
     - name: make
       run: nmake
     - name: test
