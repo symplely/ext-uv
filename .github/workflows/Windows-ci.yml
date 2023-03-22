@@ -37,12 +37,13 @@ jobs:
         cd libuv-${{matrix.libuv}}
         cmake .
         msbuild INSTALL.vcxproj /p:Configuration=Release
+        dir .
         mkdir ..\deps\include\uv
         copy /Y include\uv\* ..\deps\include\uv\
         copy /Y include\* ..\deps\include\
-        copy /Y "C:/Program Files (x86)/libuv/lib/uv.lib" ..\deps\lib\
-        copy /Y "C:/Program Files (x86)/libuv/bin/uv.dll" ..\deps\lib\
-        copy /Y "C:/Program Files (x86)/libuv/lib/uv_a.lib" ..\deps\bin\
+        copy /Y "C:\Program Files (x86)\libuv\lib\uv.lib" ..\deps\lib\
+        copy /Y "C:\Program Files (x86)\libuv\bin\uv.dll" ..\deps\lib\
+        copy /Y "C:\Program Files (x86)\libuv\lib\uv_a.lib" ..\deps\bin\
         cd ..
     - name: Enable Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1
