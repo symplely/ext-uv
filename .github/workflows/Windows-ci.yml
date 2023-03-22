@@ -37,6 +37,8 @@ jobs:
         cmake .
         msbuild INSTALL.vcxproj /p:Configuration=Release
         mkdir ..\..\deps\include\uv
+        mkdir ..\..\deps\lib
+        mkdir ..\..\deps\bin
         copy /Y include\uv\* ..\..\deps\include\uv\
         copy /Y include\* ..\..\deps\include\
         copy /Y Release\uv_a.lib ..\..\deps\lib\
@@ -61,9 +63,7 @@ jobs:
     - name: configure nts
       if: (matrix.threads == 'nts')
       run:  |
-        dir php-dev
-        dir php-sdk
-        configure --with-uv --disable-zts --with-prefix=${{steps.setup-php.outputs.prefix}}
+        configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}}
         dir x64\Release_NTS
     - name: make
       run: nmake
