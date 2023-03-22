@@ -1,5 +1,7 @@
 --TEST--
 Check for udp bind
+--SKIPIF--
+<?php if (getenv('GITHUB_ACTIONS') !== false) print "skip"; ?>
 --FILE--
 <?php
 $udp = uv_udp_init();
