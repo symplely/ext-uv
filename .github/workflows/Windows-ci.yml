@@ -36,36 +36,37 @@ jobs:
         toolset: ${{steps.setup-php.outputs.toolset}}
     - name: Fetch & build libuv ${{matrix.libuv}} library dependency
       run: |
-        dir php-dev
-        dir php-sdk
-        IF NOT EXIST php-sdk\phpdev\vs16\x64\pecl\uv (mklink /j "php-sdk\phpdev\vs16\x64\pecl\uv" .)
+        IF NOT EXIST php-dev\vs16\x64\pecl\uv (mklink /j "php-dev\vs16\x64\pecl\uv" .)
         curl -L https://github.com/libuv/libuv/archive/refs/tags/v${{matrix.libuv}}.zip --output libuv-${{matrix.libuv}}.zip
         unzip -xoq libuv-${{matrix.libuv}}.zip
         cd libuv-${{matrix.libuv}}
         cmake .
         msbuild INSTALL.vcxproj /p:Configuration=Release
-        dir Release
-        dir x64
-        mkdir ..\deps\include\uv
-        dir ..\deps\lib\
-        copy /Y include\uv\* ..\deps\include\uv\
-        copy /Y include\* ..\deps\include\
-        copy /Y "C:\Program Files (x86)\libuv\lib\uv.lib" ..\deps\lib\
-        copy /Y "C:\Program Files (x86)\libuv\bin\uv.dll" ..\deps\lib\
-        copy /Y "C:\Program Files (x86)\libuv\lib\uv_a.lib" ..\deps\bin\
+        mkdir ..\php-dev\deps\include\uv
+        copy /Y include\uv\* ..\php-dev\deps\include\uv\
+        copy /Y include\* ..\php-dev\deps\include\
+        copy /Y Release\uv_a.lib ..\php-dev\deps\lib\
+        copy /Y Release\uv.lib ..\php-dev\deps\lib\
+        copy /Y Release\uv.exp ..\php-dev\deps\lib\
+        copy /Y Release\uv.dll ..\php-dev\deps\bin\
+        dir ..\php-dev\deps\lib\
         cd ..
     - name: phpize
-      run: |
-        phpize
-        dir .
-        dir php-dev
-        dir php-sdk
+      run: phpize
     - name: configure ts
       if: (matrix.threads == 'ts')
-      run: configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}} --enable-cli --enable-sockets
+      run: |
+        dir php-dev
+        dir php-sdk
+        configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}} --enable-cli --enable-sockets
+        dir x64\Release_TS
     - name: configure nts
       if: (matrix.threads == 'nts')
-      run: configure --with-uv --disable-zts --with-prefix=${{steps.setup-php.outputs.prefix}} --enable-cli --enable-sockets
+      run:  |
+        dir php-dev
+        dir php-sdk
+        configure --with-uv --disable-zts --with-prefix=${{steps.setup-php.outputs.prefix}} --enable-cli --enable-sockets
+        dir x64\Release_NTS
     - name: make
       run: nmake
     - name: test
