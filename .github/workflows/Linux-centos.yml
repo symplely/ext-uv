@@ -9,7 +9,7 @@ jobs:
       matrix:
         container:
         - {os: 'centos:7', cli: 'yum', dev: 'libuv-devel php-devel which', dep: 'yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm https://rpms.remirepo.net/enterprise/remi-release-7.rpm', pre: "yum-config-manager --disable 'remi-php*' && yum-config-manager --enable remi-php82"}
-        - {os: 'centos:latest', cli: 'dnf', dev: 'libuv-devel php-devel which', dep: 'sed -i "s/mirrorlist/#mirrorlist/g" /etc/yum.repos.d/CentOS-* && sed -i "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-* && dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -y && /usr/bin/crb enable && dnf install centos-release-stream -y && dnf update -y && dnf install https://rpms.remirepo.net/enterprise/remi-release-8.rpm', pre: 'dnf -y install yum-utils && dnf module reset php && dnf module install php:remi-8.2 -y'}
+        - {os: 'centos:latest', cli: 'dnf', dev: 'libuv-devel php-devel which', dep: 'sed -i "s/mirrorlist/#mirrorlist/g" /etc/yum.repos.d/CentOS-* && sed -i "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-* && dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -y && /usr/bin/crb enable && dnf install centos-release-stream -y && dnf swap centos-{linux,stream}-repos -y && dnf distro-sync -y && dnf install https://rpms.remirepo.net/enterprise/remi-release-8.rpm', pre: 'dnf -y install yum-utils && dnf module reset php && dnf module install php:remi-8.2 -y'}
     runs-on: ubuntu-latest
     container: ${{ matrix.container.os }}
 

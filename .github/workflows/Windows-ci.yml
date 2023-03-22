@@ -29,29 +29,37 @@ jobs:
         ts: ${{matrix.threads}}
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v1.0.2
+    - name: Enable Developer Command Prompt
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{matrix.arch}}
+        toolset: ${{steps.setup-php.outputs.toolset}}
     - name: Fetch & build libuv ${{matrix.libuv}} library dependency
       run: |
-        dir .
+        dir php-dev
+        dir php-sdk
+        IF NOT EXIST php-sdk\phpdev\vs16\x64\pecl\uv (mklink /j "php-sdk\phpdev\vs16\x64\pecl\uv" .)
         curl -L https://github.com/libuv/libuv/archive/refs/tags/v${{matrix.libuv}}.zip --output libuv-${{matrix.libuv}}.zip
         unzip -xoq libuv-${{matrix.libuv}}.zip
         cd libuv-${{matrix.libuv}}
         cmake .
         msbuild INSTALL.vcxproj /p:Configuration=Release
-        dir .
+        dir Release
+        dir x64
         mkdir ..\deps\include\uv
+        dir ..\deps\lib\
         copy /Y include\uv\* ..\deps\include\uv\
         copy /Y include\* ..\deps\include\
         copy /Y "C:\Program Files (x86)\libuv\lib\uv.lib" ..\deps\lib\
         copy /Y "C:\Program Files (x86)\libuv\bin\uv.dll" ..\deps\lib\
         copy /Y "C:\Program Files (x86)\libuv\lib\uv_a.lib" ..\deps\bin\
         cd ..
-    - name: Enable Developer Command Prompt
-      uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: ${{matrix.arch}}
-        toolset: ${{steps.setup-php.outputs.toolset}}
     - name: phpize
-      run: phpize
+      run: |
+        phpize
+        dir .
+        dir php-dev
+        dir php-sdk
     - name: configure ts
       if: (matrix.threads == 'ts')
       run: configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}} --enable-cli --enable-sockets
