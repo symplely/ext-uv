@@ -24,7 +24,7 @@ jobs:
             phpts: ${{ matrix.threads }} # specify ts or nts
       - name: Install PHP Build tools
         run: |
-          apt-get install libuv1-dev php-dev libtool php-pear -y
+            sudo apt-get install libuv1-dev php${{ matrix.php-versions }}-dev libtool php-pear -y
       - name: Build ext-uv nts
         if: matrix.threads == 'nts'
         run: |
