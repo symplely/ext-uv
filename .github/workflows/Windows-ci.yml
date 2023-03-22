@@ -40,9 +40,9 @@ jobs:
         mkdir ..\deps\include\uv
         copy /Y include\uv\* ..\deps\include\uv\
         copy /Y include\* ..\deps\include\
-        copy /Y Release\uv.lib ..\deps\lib\
-        copy /Y Release\uv.exp ..\deps\lib\
-        copy /Y Release\uv.dll ..\deps\bin\
+        copy /Y "C:/Program Files (x86)/libuv/lib/uv.lib" ..\deps\lib\
+        copy /Y "C:/Program Files (x86)/libuv/bin/uv.dll" ..\deps\lib\
+        copy /Y "C:/Program Files (x86)/libuv/lib/uv_a.lib" ..\deps\bin\
         cd ..
     - name: Enable Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1
