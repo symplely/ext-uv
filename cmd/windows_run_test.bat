@@ -1,8 +1,15 @@
 @echo off
-if not defined PHP_VER set PHP_VER=8.0.7
+if not defined PHP_VER set PHP_VER=8.2.4
+
+if "%PHP_VER%" == "7.4.33" (
+    set CRT=vs15
+) else (
+    set CRT=vs16
+)
+
 call cmd\getopt.bat %*
-IF EXIST php-sdk\phpdev\vs16\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%\php.exe (
-  cd php-sdk\phpdev\vs16\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%
+IF EXIST php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%\php.exe (
+  cd php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%
   IF EXIST ..\pecl-%PHP_VER%\php_uv.dll (
     copy /Y ..\pecl-%PHP_VER%\php_uv.dll ext\
     IF NOT EXIST php.ini (
@@ -13,6 +20,6 @@ IF EXIST php-sdk\phpdev\vs16\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%\php.exe
 
   php -m
   php ..\..\..\run-tests.php --offline --show-diff --set-timeout 120 ..\..\..\..\pecl\uv\tests
-  dir
-  dir ..
+  dir ..\pecl-%PHP_VER%
+  dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release_TS\php-%PHP_VER%\
 )
