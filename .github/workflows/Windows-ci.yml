@@ -28,7 +28,9 @@ jobs:
         arch: ${{matrix.arch}}
         ts: ${{matrix.threads}}
     - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v1.0.2
+      uses: microsoft/setup-msbuild@v1.3.1
+      with:
+        msbuild-architecture: x64
     - name: Fetch & build libuv ${{matrix.libuv}} library dependency
       run: |
         curl -L https://github.com/libuv/libuv/archive/refs/tags/v${{matrix.libuv}}.zip --output libuv-${{matrix.libuv}}.zip
@@ -45,8 +47,6 @@ jobs:
         copy /Y Release\uv.lib ..\..\deps\lib\
         copy /Y Release\uv.exp ..\..\deps\lib\
         copy /Y Release\uv.dll ..\..\deps\bin\
-        dir ..\..\deps\lib\
-        dir ..\..\deps\
         cd ..
     - name: Enable Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1
@@ -55,16 +55,8 @@ jobs:
         toolset: ${{steps.setup-php.outputs.toolset}}
     - name: phpize
       run: phpize
-    - name: configure ts
-      if: (matrix.threads == 'ts')
-      run: |
-        configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}}
-        dir x64\Release_TS
-    - name: configure nts
-      if: (matrix.threads == 'nts')
-      run:  |
-        configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}}
-        dir x64\Release_NTS
+    - name: configure
+      run: configure --with-uv --with-prefix=${{steps.setup-php.outputs.prefix}}
     - name: make
       run: nmake
     - name: test
