@@ -62,12 +62,15 @@ jobs:
     - name: test
       run: |
         copy /Y ..\deps\bin\uv.dll php-bin\libuv.dll
-        copy /Y x64\Release_TS\php_uv.dll php-bin\ext\php_uv.dll
-        copy /Y x64\Release\php_uv.dll php-bin\ext\php_uv.dll
-        dir php-bin\ext
-        dir x64\Release_TS
-        dir x64\Release
-        echo extension=uv >> php-bin\php.ini
         dir php-bin
+        if "${{matrix.threads}}" == "ts" (
+            copy /Y x64\Release_TS\php_uv.dll php-bin\ext\php_uv.dll
+            dir x64\Release_TS
+        ) else if "${{matrix.threads}}" == "nts" (
+            copy /Y x64\Release\php_uv.dll php-bin\ext\php_uv.dll
+            dir x64\Release
+        )
+        dir php-bin\ext
+        echo extension=uv >> php-bin\php.ini
         php-bin\php.exe -m
         nmake test TESTS="--show-diff tests"

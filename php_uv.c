@@ -300,7 +300,7 @@ __attribute__((weak)) zend_class_entry *socket_ce = NULL;
 # endif
 #endif
 
-#if !defined(PHP_WIN32) && PHP_VERSION_ID < 80000
+#if PHP_VERSION_ID < 80000 && (!defined(PHP_WIN32) || (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS)))
 int (*php_sockets_le_socket_ptr)(void) = NULL;
 int php_sockets_le_socket(void) __attribute__((weak));
 #endif
@@ -485,7 +485,7 @@ static php_socket_t php_uv_zval_to_fd(zval *ptr)
 			if (php_stream_cast(stream, PHP_STREAM_AS_FD | PHP_STREAM_CAST_INTERNAL, (void *) &fd, 1) != SUCCESS || fd < 0) {
 				fd = -1;
 			}
-#if PHP_VERSION_ID >= 80000 && (!defined(PHP_WIN32) || (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS)))
+#if PHP_VERSION_ID < 80000 && (!defined(PHP_WIN32) || (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS)))
 		} else if (php_sockets_le_socket_ptr && (socket = (php_socket *) zend_fetch_resource_ex(ptr, NULL, php_sockets_le_socket_ptr()))) {
 			fd = socket->bsd_socket;
 #endif
