@@ -300,12 +300,8 @@ __attribute__((weak)) zend_class_entry *socket_ce = NULL;
 # endif
 #endif
 
-#if PHP_VERSION_ID < 80000 && (!defined(PHP_WIN32) || (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS)))
-#if (PHP_VERSION_ID < 80000 && defined(PHP_WIN32))
-typedef int (*php_sockets_le_socket_ptr)(void);
-#else
+#if PHP_VERSION_ID < 80000 && (!defined(PHP_WIN32) && (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS)))
 int (*php_sockets_le_socket_ptr)(void) = NULL;
-#endif
 int php_sockets_le_socket(void) __attribute__((weak));
 #endif
 
@@ -459,7 +455,7 @@ static php_socket_t php_uv_zval_to_valid_poll_fd(zval *ptr)
 			}
 
 			fd = -1;
-#if PHP_VERSION_ID < 80000 && (!defined(PHP_WIN32) || (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS)))
+#if PHP_VERSION_ID < 80000 && (!defined(PHP_WIN32) && (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS)))
 		} else if (php_sockets_le_socket_ptr && (socket = (php_socket *) zend_fetch_resource_ex(ptr, NULL, php_sockets_le_socket_ptr()))) {
 			fd = socket->bsd_socket;
 #endif
