@@ -60,4 +60,8 @@ jobs:
     - name: make
       run: nmake
     - name: test
-      run: nmake test TESTS="--show-diff tests"
+      run: |
+        dir x64\Release_TS
+        dir x64\Release
+        dir php-bin
+        nmake test TESTS="--show-diff tests"
