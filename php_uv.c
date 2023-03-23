@@ -301,7 +301,11 @@ __attribute__((weak)) zend_class_entry *socket_ce = NULL;
 #endif
 
 #if PHP_VERSION_ID < 80000 && (!defined(PHP_WIN32) || (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS)))
+#if (PHP_VERSION_ID < 80000 && defined(PHP_WIN32))
+typedef int (*php_sockets_le_socket_ptr)(void);
+#else
 int (*php_sockets_le_socket_ptr)(void) = NULL;
+#endif
 int php_sockets_le_socket(void) __attribute__((weak));
 #endif
 

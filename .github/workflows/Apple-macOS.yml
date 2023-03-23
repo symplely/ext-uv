@@ -1,5 +1,5 @@
 # GitHub Action for PHP with extensions
-name: macOS
+name: Apple macOS
 
 on: [push, pull_request]
 

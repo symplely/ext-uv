@@ -71,6 +71,7 @@ jobs:
             dir x64\Release
         )
         dir php-bin\ext
+        copy /Y php-bin\php.ini-production php-bin\php.ini
         echo extension=uv >> php-bin\php.ini
         php-bin\php.exe -m
         nmake test TESTS="--show-diff tests"
