@@ -62,10 +62,10 @@ jobs:
     - name: test
       run: |
         dir .
+        dir ..\deps\bin
         dir x64\Release_TS
         dir x64\Release
         dir php-bin\ext
-        copy /Y deps\bin\uv.dll x64\Release\libuv.dll
-        copy /Y deps\bin\uv.dll x64\Release_TS\libuv.dll
-        copy /Y deps\bin\uv.dll php-bin\libuv.dll
+        dir php-bin
+        copy /Y ..\deps\bin\uv.dll php-bin\libuv.dll
         nmake test TESTS="--show-diff tests"
