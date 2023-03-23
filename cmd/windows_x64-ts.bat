@@ -3,7 +3,7 @@ if not defined PHP_VER set PHP_VER=8.2.4
 if not defined UV_SHARED set UV_SHARED=--with-uv
 
 if "%PHP_VER%" == "7.4.33" (
-    set CRT=vs15
+    set CRT=vc15
 ) else (
     set CRT=vs16
 )
@@ -31,7 +31,7 @@ set PHP_SDK_ROOT_PATH=%PHP_SDK_ROOT_PATH:~0,-1%
 
 set PHP_SDK_RUN_FROM_ROOT=.\php-sdk
 set ARCH=x64
-copy /Y ..\cmd\phpsdk_setshell.bat bin\phpsdk_setshell.bat
+rem copy /Y ..\cmd\phpsdk_setshell.bat bin\phpsdk_setshell.bat
 bin\phpsdk_setshell.bat %CRT% x64 && bin\phpsdk_setvars.bat && bin\phpsdk_dumpenv.bat && bin\phpsdk_buildtree.bat phpdev && cd php-%PHP_VER% && IF NOT EXIST config.nice (..\..\..\..\bin\phpsdk_deps -u --no-backup) && IF NOT EXIST "..\deps\include\uv" (
   cd .. && ..\..\..\..\cmd\libuv_build.bat && cd php-%PHP_VER% && buildconf --add-modules-dir=..\pecl\ && configure --enable-cli %UV_SHARED% --enable-sockets && nmake snap && cd ..\..\..\..\.. && if EXIST config.w32.bak ( ren config.w32 config.w32.shared && ren config.w32.bak config.w32)
 ) else (
