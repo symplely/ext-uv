@@ -8,9 +8,9 @@ if "%PHP_VER%" == "7.4.33" (
 )
 
 call cmd\getopt.bat %*
-dir php-sdk
-dir php-sdk\phpdev
 dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release
+dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\pecl
+dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\pecl-%PHP_VER%
 IF EXIST php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%\php.exe (
   cd php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%
   IF EXIST ..\pecl-%PHP_VER%\php_uv.dll (
@@ -22,5 +22,6 @@ IF EXIST php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%\php.ex
   )
 
 dir ext
+dir ..\..\..\..\pecl\uv
 php ..\..\..\run-tests.php --offline --show-diff --set-timeout 240 ..\..\..\..\pecl\uv\tests
 )
