@@ -19,9 +19,11 @@ uv_fs_open(uv_default_loop(), ('\\' === \DIRECTORY_SEPARATOR) ? '\\\\?\\CON' : '
     } elseif ('\\' === \DIRECTORY_SEPARATOR) {
         echo $height. ' ' .uv_strerror($error);
     }
+
+echo 'error: ' .$error. ' - height is: '. $height . ' - uv error: '. uv_strerror($error);
 });
 
 uv_run();
---EXPECT--
+--EXPECTF--
 OK
 OK
