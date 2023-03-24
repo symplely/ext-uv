@@ -1,9 +1,9 @@
 --TEST--
-Check for poll read and close
+Check for poll read and close - Windows
 --SKIPIF--
 <?php
-if ('\\' === DIRECTORY_SEPARATOR) {
-    die("skip test Linux only, works locally as Windows, issue with CI and opcache setting\n");
+if ('\\' != DIRECTORY_SEPARATOR) {
+    die("skip test for Windows only, works locally as Linux, issue with CI and opcache setting\n");
 }
 ?>
 --FILE--
@@ -16,6 +16,8 @@ uv_poll_start($poll, UV::READABLE, function($poll, $stat, $ev, $socket) {
     $conn = stream_socket_accept($socket, 0);
 
     uv_poll_stop($poll);
+    if ('\\' === \DIRECTORY_SEPARATOR)
+        echo fread($conn, 4) . PHP_EOL;
 
     $pp = uv_poll_init(uv_default_loop(), $conn);
     uv_poll_start($pp, UV::WRITABLE, function($poll, $stat, $ev, $conn) use (&$pp) {
@@ -52,4 +54,5 @@ EOF;
 
 uv_run();
 --EXPECTF--
+HELO
 OK
