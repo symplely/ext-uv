@@ -294,6 +294,10 @@ static int uv_parse_arg_object(zval *arg, zval **dest, int check_null, zend_clas
 #define UV_EG_ALL(ls) UV_FETCH_ALL(ls, executor_globals_id, zend_executor_globals*)
 #endif
 
+#if PHP_VERSION_ID < 80000 && defined(PHP_WIN32)
+#define __attribute__(X)
+#endif
+
 #if !defined(PHP_WIN32) && !(defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS))
 # if PHP_VERSION_ID >= 80000
 __attribute__((weak)) zend_class_entry *socket_ce = NULL;
