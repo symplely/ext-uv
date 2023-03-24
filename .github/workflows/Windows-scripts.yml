@@ -1,8 +1,7 @@
 # GitHub Action for PHP with extensions
-name: Windows bat's
+name: Windows scripts
 
-on:
-  workflow_dispatch:
+on: [push, pull_request]
 
 jobs:
   windows:

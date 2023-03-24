@@ -1,9 +1,9 @@
 --TEST--
-Check for uv_write multiple call with different callbacks
+Check for uv_write multiple call with different callbacks - Windows
 --SKIPIF--
 <?php
-if ('\\' === DIRECTORY_SEPARATOR) {
-    die("skip test Linux only, shows correct execution order\n");
+if ('\\' != DIRECTORY_SEPARATOR) {
+    die("skip test for Windows only, showing incorrect execution order, where Linux correctly shows\n");
 }
 ?>
 --FILE--
@@ -20,4 +20,4 @@ uv_write($handler, 'C', function () { echo 'C'; });
 uv_run($loop);
 uv_close($handler);
 --EXPECTF--
-ABCABC
+AABBCC

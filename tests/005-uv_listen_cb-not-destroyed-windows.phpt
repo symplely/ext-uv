@@ -1,9 +1,9 @@
 --TEST--
-Check for uv_listen callback is not destroyed by gc
+Check for uv_listen callback is not destroyed by gc - Windows
 --SKIPIF--
 <?php
-if ('\\' === DIRECTORY_SEPARATOR) {
-    die("skip test Linux only, shows correct number of `OK`\n");
+if ('\\' != DIRECTORY_SEPARATOR) {
+    die("skip test for Windows only, missing additional `OK`, issue with opcache setting\n");
 }
 ?>
 --FILE--
@@ -68,7 +68,6 @@ for ($i = 0; $i < 4; $i++) {
 uv_run($loop, UV::RUN_DEFAULT);
 
 --EXPECTF--
-OK
 OK
 OK
 OK

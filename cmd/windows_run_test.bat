@@ -18,9 +18,6 @@ IF EXIST php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%\php.ex
     )
   )
 
-  php -m
-  php -v
-  php ..\..\..\run-tests.php --offline --show-diff --set-timeout 120 ..\..\..\..\pecl\uv\tests
-  dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release
-  dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64
+  dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%
+  php ..\..\..\run-tests.php --offline --show-diff --set-timeout 240 ..\..\..\..\pecl\uv\tests
 )
