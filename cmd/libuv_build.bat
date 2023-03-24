@@ -1,21 +1,5 @@
 @echo off
-if not defined LIBUV_VER (
-    set LIBUV_VER=1.44.2
-)
 
-if EXIST "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise" (
-	curl -L https://github.com/symplely/libuv/releases/download/libuv-v%LIBUV_VER%-windows/libuv-v%LIBUV_VER%.zip --output libuv-%LIBUV_VER%.zip
-	unzip -xoq libuv-%LIBUV_VER%.zip
-    dir libuv-%LIBUV_VER%\
-	mkdir deps\include\uv
-	mkdir deps\lib
-	copy /Y libuv-%LIBUV_VER%\bin\* deps\bin\
-	copy /Y libuv-%LIBUV_VER%\include\* deps\include\
-	copy /Y libuv-%LIBUV_VER%\include\uv\* deps\include\uv\
-	copy /Y libuv-%LIBUV_VER%\lib\* deps\lib\
-    dir libuv-%LIBUV_VER%\
-    dir deps\lib
-) else (
     curl -L https://github.com/libuv/libuv/archive/refs/tags/v%LIBUV_VER%.zip --output libuv-%LIBUV_VER%.zip
     unzip -xoq libuv-%LIBUV_VER%.zip
     cd libuv-%LIBUV_VER%
@@ -29,7 +13,6 @@ if EXIST "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise" (
     copy /Y Release\uv.exp ..\deps\lib\
     copy /Y Release\uv.dll ..\deps\bin\
     cd ..
-)
 
 del libuv-%LIBUV_VER%.zip
 rmdir /S /Q libuv-%LIBUV_VER%
