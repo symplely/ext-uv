@@ -30,7 +30,7 @@ if (!defined("UV::O_TRUNC")) {
 if (!defined("UV::O_APPEND")) {
   echo "FAILED UV::O_APPEND" . PHP_EOL;
 }
-if ('\\' != DIDIRECTORY_SEPARATORR && !defined("UV::O_NOCTTY")) {
+if ('\\' != DIRECTORY_SEPARATOR && !defined("UV::O_NOCTTY")) {
   echo "FAILED UV::O_NOCTTY" . PHP_EOL;
 }
 if (!defined("UV::S_IRWXU")) {
