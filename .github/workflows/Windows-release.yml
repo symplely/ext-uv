@@ -37,8 +37,8 @@ jobs:
         curl -L https://github.com/libuv/libuv/archive/refs/tags/v${{matrix.libuv}}.zip --output libuv-${{matrix.libuv}}.zip
         unzip -xoq libuv-${{matrix.libuv}}.zip
         cd libuv-${{matrix.libuv}}
-        cmake .
-        msbuild INSTALL.vcxproj /p:Configuration=Release
+        cmake . -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release
+        cmake --build . --config Release
         mkdir ..\..\deps\include\uv
         mkdir ..\..\deps\lib
         mkdir ..\..\deps\bin
@@ -59,21 +59,24 @@ jobs:
     - name: phpize
       run: phpize
     - name: configure
-      run: configure --with-uv=shared --enable-debug-pack --with-prefix=${{steps.setup-php.outputs.prefix}}
+      run: configure --with-uv --enable-debug-pack --with-prefix=${{steps.setup-php.outputs.prefix}}
     - name: make
       run: nmake
     - name: test
       run: |
-        copy /Y ..\deps\bin\uv.dll php-bin\libuv.dll
+        copy /Y ..\deps\bin\uv.dll libuv.dll
+        copy /Y ..\deps\bin\uv.dll uv.dll
         if "${{matrix.threads}}" == "ts" (
             copy /Y x64\Release_TS\php_uv.dll php-bin\ext\php_uv.dll
+            dir x64\Release_TS
         ) else if "${{matrix.threads}}" == "nts" (
             copy /Y x64\Release\php_uv.dll php-bin\ext\php_uv.dll
+            dir x64\Release
         )
         dir php-bin
-        copy /Y php-bin\php.ini-production php-bin\php.ini
-        echo extension=uv >> php-bin\php.ini
+        dir .
         php-bin\php.exe -m
+        php-bin\php.exe -v
         nmake test TESTS="--show-diff tests"
     - name: Create binary archive from release
       run: |

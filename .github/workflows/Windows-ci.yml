@@ -37,8 +37,8 @@ jobs:
         curl -L https://github.com/libuv/libuv/archive/refs/tags/v${{matrix.libuv}}.zip --output libuv-${{matrix.libuv}}.zip
         unzip -xoq libuv-${{matrix.libuv}}.zip
         cd libuv-${{matrix.libuv}}
-        cmake . -DBUILD_TESTING=OFF
-        msbuild INSTALL.vcxproj /p:Configuration=Release
+        cmake . -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release
+        cmake --build . --config Release
         mkdir ..\..\deps\include\uv
         mkdir ..\..\deps\lib
         mkdir ..\..\deps\bin
@@ -64,13 +64,17 @@ jobs:
       run: nmake
     - name: test
       run: |
-        rem copy /Y ..\deps\bin\uv.dll php-bin\libuv.dll
+        copy /Y ..\deps\bin\uv.dll libuv.dll
+        copy /Y ..\deps\bin\uv.dll uv.dll
         if "${{matrix.threads}}" == "ts" (
             copy /Y x64\Release_TS\php_uv.dll php-bin\ext\php_uv.dll
+            dir x64\Release_TS
         ) else if "${{matrix.threads}}" == "nts" (
             copy /Y x64\Release\php_uv.dll php-bin\ext\php_uv.dll
+            dir x64\Release
         )
         dir php-bin
+        dir .
         php-bin\php.exe -m
         php-bin\php.exe -v
         nmake test TESTS="--show-diff tests"

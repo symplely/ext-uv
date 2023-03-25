@@ -2219,7 +2219,7 @@ static void php_uv_idle_cb(uv_timer_t *handle)
 static void php_uv_getaddrinfo_cb(uv_getaddrinfo_t* handle, int status, struct addrinfo* res)
 {
 	zval retval = {0};
-	zval params[1] = {0};
+	zval params[2] = {0};
 	struct addrinfo *address;
 	char ip[INET6_ADDRSTRLEN];
 	const char *addr;
@@ -2227,10 +2227,9 @@ static void php_uv_getaddrinfo_cb(uv_getaddrinfo_t* handle, int status, struct a
 	php_uv_t *uv = (php_uv_t*)handle->data;
 	TSRMLS_FETCH_FROM_CTX(uv->thread_ctx);
 
-	if (status != 0) {
-		ZVAL_LONG(&params[0], status);
-	} else {
-		array_init(&params[0]);
+	ZVAL_LONG(&params[0], status);
+	if (status == 0) {
+		array_init(&params[1]);
 
 		address = res;
 		while (address) {
@@ -2255,10 +2254,10 @@ static void php_uv_getaddrinfo_cb(uv_getaddrinfo_t* handle, int status, struct a
 		}
 	}
 
-	php_uv_do_callback2(&retval, uv, params, 1, PHP_UV_GETADDR_CB TSRMLS_CC);
+	php_uv_do_callback2(&retval, uv, params, 2, PHP_UV_GETADDR_CB TSRMLS_CC);
 
 	zval_ptr_dtor(&retval);
-	zval_ptr_dtor(&params[0]);
+	zval_ptr_dtor(&params[1]);
 
 	uv_freeaddrinfo(res);
 	clean_uv_handle(uv);
@@ -4316,7 +4315,7 @@ PHP_FUNCTION(uv_idle_stop)
 /* }}} */
 
 
-/* {{{ proto void uv_getaddrinfo(UVLoop $loop, callable(array|long $addresses_or_error) $callback, string $node, string $service[, array $hints = []])
+/* {{{ proto void uv_getaddrinfo(UVLoop $loop, callable(long, array $addresses) $callback, string $node, string $service[, array $hints = []])
 */
 PHP_FUNCTION(uv_getaddrinfo)
 {
