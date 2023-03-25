@@ -1,9 +1,8 @@
 # GitHub Action for PHP with extensions
-name: Windows PHP 7.4
+name: Windows PHP 7.4 release
 
 on:
-  pull_request:
-  workflow_dispatch:
+  release:
 
 jobs:
   windows:
@@ -38,7 +37,7 @@ jobs:
         curl -L https://github.com/libuv/libuv/archive/refs/tags/v${{matrix.libuv}}.zip --output libuv-${{matrix.libuv}}.zip
         unzip -xoq libuv-${{matrix.libuv}}.zip
         cd libuv-${{matrix.libuv}}
-        cmake . -DBUILD_TESTING=OFF
+        cmake . -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release
         cmake --build . --config Release
         mkdir ..\..\deps\include\uv
         mkdir ..\..\deps\lib
@@ -63,18 +62,24 @@ jobs:
       run: configure --with-uv=shared --enable-debug-pack --with-prefix=${{steps.setup-php.outputs.prefix}}
     - name: make
       run: nmake
-    - name: test
+    - name: Create binary archive from release
       run: |
-        dir .
-        copy /Y ..\deps\bin\uv.dll uv.dll
+        mkdir ext_uv-${{ github.event.release.tag_name }}
         if "${{matrix.threads}}" == "ts" (
-            copy /Y x64\Release_TS\php_uv.dll php-bin\ext\php_uv.dll
-            dir x64\Release_TS
+            copy /Y x64\Release_TS\php_uv.dll ext_uv-${{ github.event.release.tag_name }}
         ) else if "${{matrix.threads}}" == "nts" (
-            copy /Y x64\Release\php_uv.dll php-bin\ext\php_uv.dll
-            dir x64\Release
+            copy /Y x64\Release\php_uv.dll ext_uv-${{ github.event.release.tag_name }}
         )
-        dir php-bin\ext
-        php-bin\php.exe -m
-        php-bin\php.exe -v
-        nmake test TESTS="--show-diff tests"
+        copy /Y ..\deps\bin\uv.dll ext_uv-${{ github.event.release.tag_name }}
+        dir ext_uv-${{ github.event.release.tag_name }}
+        7z a ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-${{steps.setup-php.outputs.toolset}}-x64.zip ext_uv-${{ github.event.release.tag_name }}\* -tzip -y
+    - name: Upload the windows binary artifacts
+      uses: svenstaro/upload-release-action@v2
+      with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-${{steps.setup-php.outputs.toolset}}-x64.zip
+          asset_name: ext_uv-${{ github.event.release.tag_name }}-windows
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+          body: "Windows binary - uv.dll and php_uv.dll "
