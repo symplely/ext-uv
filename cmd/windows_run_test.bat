@@ -2,7 +2,7 @@
 if not defined PHP_VER set PHP_VER=8.2.4
 
 if "%PHP_VER%" == "7.4.33" (
-    set CRT=vc15
+    set CRT=vc14
 ) else (
     set CRT=vs16
 )
