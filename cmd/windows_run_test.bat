@@ -8,11 +8,11 @@ if "%PHP_VER%" == "7.4.33" (
 )
 
 call cmd\getopt.bat %*
-dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%
-dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\pecl\uv
-dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\pecl-%PHP_VER%
-IF EXIST php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%\php.exe (
-  cd php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%
+dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release%PHP_TS%\php-%PHP_VER%
+dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release%PHP_TS%\pecl\uv
+dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release%PHP_TS%\pecl-%PHP_VER%
+IF EXIST php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release%PHP_TS%\php-%PHP_VER%\php.exe (
+  cd php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release%PHP_TS%\php-%PHP_VER%
   IF EXIST ..\pecl-%PHP_VER%\php_uv.dll (
     copy /Y ..\pecl-%PHP_VER%\php_uv.dll ext\
     IF NOT EXIST php.ini (
@@ -21,5 +21,7 @@ IF EXIST php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release\php-%PHP_VER%\php.ex
     )
   )
 
+dir ext
+ren uv.dll libuv.dll
 php ..\..\..\run-tests.php --offline --show-diff --set-timeout 240 ..\..\..\..\pecl\uv\tests
 )

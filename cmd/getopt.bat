@@ -3,12 +3,8 @@
 if "%~1" == "" goto endparse
 if "%~1" == "--php" set PHP_VER=%2
 if "%~1" == "--uv" set LIBUV_VER=%2
-if "%~1" == "--shared" (
-  if EXIST config.w32.bak ( ren config.w32 config.w32.shared && ren config.w32.bak config.w32)
-  set UV_SHARED=--with-uv=shared
-  ren config.w32 config.w32.bak
-  ren config.w32.shared config.w32
-)
+if "%~1" == "--ts" set PHP_TS=_TS
+if "%~1" == "--shared" set UV_SHARED=--with-uv=shared
 
 shift
 goto parse
