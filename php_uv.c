@@ -2236,7 +2236,7 @@ static void php_uv_getaddrinfo_cb(uv_getaddrinfo_t* handle, int status, struct a
 			if (address->ai_family == AF_INET) {
 				addr = (char*) &((struct sockaddr_in*) address->ai_addr)->sin_addr;
 				uv_inet_ntop(address->ai_family, addr, ip, INET6_ADDRSTRLEN);
-				add_next_index_string(&params[0], ip);
+				add_next_index_string(&params[1], ip);
 			}
 
 			address = address->ai_next;
@@ -2247,7 +2247,7 @@ static void php_uv_getaddrinfo_cb(uv_getaddrinfo_t* handle, int status, struct a
 			if (address->ai_family == AF_INET6) {
 				addr = (char*) &((struct sockaddr_in6*) address->ai_addr)->sin6_addr;
 				uv_inet_ntop(address->ai_family, addr, ip, INET6_ADDRSTRLEN);
-				add_next_index_string(&params[0], ip);
+				add_next_index_string(&params[1], ip);
 			}
 
 			address = address->ai_next;
@@ -2257,6 +2257,7 @@ static void php_uv_getaddrinfo_cb(uv_getaddrinfo_t* handle, int status, struct a
 	php_uv_do_callback2(&retval, uv, params, 2, PHP_UV_GETADDR_CB TSRMLS_CC);
 
 	zval_ptr_dtor(&retval);
+	zval_ptr_dtor(&params[0]);
 	zval_ptr_dtor(&params[1]);
 
 	uv_freeaddrinfo(res);
