@@ -3,7 +3,7 @@ if not defined PHP_VER set PHP_VER=8.2.4
 if not defined UV_SHARED set UV_SHARED=--with-uv
 
 if "%PHP_VER%" == "7.4.33" (
-    set CRT=vc14
+    set CRT=vc15
 ) else (
     set CRT=vs16
 )
