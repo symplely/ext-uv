@@ -59,7 +59,7 @@ jobs:
     - name: phpize
       run: phpize
     - name: configure
-      run: configure --with-uv --enable-debug-pack --with-prefix=${{steps.setup-php.outputs.prefix}}
+      run: configure --with-uv=shared --enable-debug-pack --with-prefix=${{steps.setup-php.outputs.prefix}}
     - name: make
       run: nmake
     - name: test
