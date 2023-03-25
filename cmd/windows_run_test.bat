@@ -18,6 +18,8 @@ IF EXIST php.exe (
   )
 
 dir ext
-copy /Y uv.dll libuv.dll
+rem copy /Y uv.dll libuv.dll
+php -m
+php -v
 php ..\..\..\run-tests.php --offline --show-diff --set-timeout 240 ..\..\..\..\pecl\uv\tests
 )
