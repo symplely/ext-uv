@@ -10,7 +10,7 @@ jobs:
     defaults:
       run:
         shell: cmd
-    runs-on: windows-latest
+    runs-on: windows-2019
     strategy:
       fail-fast: false
       matrix:
@@ -64,7 +64,7 @@ jobs:
       run: nmake
     - name: test
       run: |
-        copy /Y ..\deps\bin\uv.dll php-bin\libuv.dll
+        rem copy /Y ..\deps\bin\uv.dll php-bin\libuv.dll
         if "${{matrix.threads}}" == "ts" (
             copy /Y x64\Release_TS\php_uv.dll php-bin\ext\php_uv.dll
         ) else if "${{matrix.threads}}" == "nts" (
@@ -72,4 +72,5 @@ jobs:
         )
         dir php-bin
         php-bin\php.exe -m
+        php-bin\php.exe -v
         nmake test TESTS="--show-diff tests"

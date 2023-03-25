@@ -1,7 +1,8 @@
 # GitHub Action for PHP with extensions
 name: Windows scripts
 
-on: [push, pull_request]
+on:
+  workflow_dispatch:
 
 jobs:
   windows:
