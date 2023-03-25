@@ -37,7 +37,7 @@ jobs:
         curl -L https://github.com/libuv/libuv/archive/refs/tags/v${{matrix.libuv}}.zip --output libuv-${{matrix.libuv}}.zip
         unzip -xoq libuv-${{matrix.libuv}}.zip
         cd libuv-${{matrix.libuv}}
-        cmake .
+        cmake . -DBUILD_TESTING=OFF
         msbuild INSTALL.vcxproj /p:Configuration=Release
         mkdir ..\..\deps\include\uv
         mkdir ..\..\deps\lib
