@@ -8,15 +8,16 @@ if "%PHP_VER%" == "7.4.33" (
 )
 
 call cmd\getopt.bat %*
+dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release%PHP_TS%
 dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release%PHP_TS%\php-%PHP_VER%
 dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release%PHP_TS%\pecl\uv
 dir php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release%PHP_TS%\pecl-%PHP_VER%
-IF EXIST php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release%PHP_TS%\php-%PHP_VER%\php.exe (
-  cd php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release%PHP_TS%\php-%PHP_VER%
+cd php-sdk\phpdev\%CRT%\x64\php-%PHP_VER%\x64\Release%PHP_TS%\php-%PHP_VER%
+IF EXIST php.exe (
   IF EXIST ..\pecl-%PHP_VER%\php_uv.dll (
     copy /Y ..\pecl-%PHP_VER%\php_uv.dll ext\
     IF NOT EXIST php.ini (
-      copy /Y php.ini-production php.ini
+      rem copy /Y php.ini-production php.ini
       echo extension=uv >> php.ini
     )
   )
