@@ -1,5 +1,5 @@
 # GitHub Action for PHP with extensions
-name: Windows ci
+name: Windows PHP 7.4
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['7.4', '8.0', '8.1', '8.2']
+        version: ['7.4']
         arch: [x64]
         threads: [ts, nts]
         libuv: [ 1.44.2 ]

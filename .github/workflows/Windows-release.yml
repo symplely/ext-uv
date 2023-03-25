@@ -62,10 +62,8 @@ jobs:
       run: configure --with-uv --enable-debug-pack --with-prefix=${{steps.setup-php.outputs.prefix}}
     - name: make
       run: nmake
-    - name: test
+    - name: Create binary archive from release
       run: |
-        copy /Y ..\deps\bin\uv.dll libuv.dll
-        copy /Y ..\deps\bin\uv.dll uv.dll
         if "${{matrix.threads}}" == "ts" (
             copy /Y x64\Release_TS\php_uv.dll php-bin\ext\php_uv.dll
             dir x64\Release_TS
@@ -73,13 +71,9 @@ jobs:
             copy /Y x64\Release\php_uv.dll php-bin\ext\php_uv.dll
             dir x64\Release
         )
+        copy /Y ..\deps\bin\uv.dll uv.dll
         dir php-bin
         dir .
-        php-bin\php.exe -m
-        php-bin\php.exe -v
-        nmake test TESTS="--show-diff tests"
-    - name: Create binary archive from release
-      run: |
         mkdir ext_uv-${{ github.event.release.tag_name }}
         copy /Y php-bin\ext\php_uv.dll ext_uv-${{ github.event.release.tag_name }}
         copy /Y php-bin\libuv.dll ext_uv-${{ github.event.release.tag_name }}
