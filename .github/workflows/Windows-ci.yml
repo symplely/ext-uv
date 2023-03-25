@@ -46,8 +46,10 @@ jobs:
         copy /Y include\* ..\..\deps\include\
         copy /Y Release\uv_a.lib ..\..\deps\lib\
         copy /Y Release\uv.lib ..\..\deps\lib\
+        copy /Y Release\uv.lib ..\..\deps\lib\libuv.lib
         copy /Y Release\uv.exp ..\..\deps\lib\
         copy /Y Release\uv.dll ..\..\deps\bin\
+        copy /Y Release\uv.dll ..\..\deps\bin\libuv.dll
         cd ..
     - name: Enable Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1
