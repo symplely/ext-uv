@@ -19,10 +19,12 @@ IF EXIST php.exe (
     IF NOT EXIST php.ini (
       rem copy /Y php.ini-production php.ini
       echo extension=uv >> php.ini
+      echo extension=php_uv >> php.ini
+      echo extension=php_uv.dll >> php.ini
     )
   )
 
 dir ext
-ren uv.dll libuv.dll
+copy /Y uv.dll libuv.dll
 php ..\..\..\run-tests.php --offline --show-diff --set-timeout 240 ..\..\..\..\pecl\uv\tests
 )

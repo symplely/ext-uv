@@ -2,6 +2,7 @@
 name: Windows CI
 
 on:
+  release:
   workflow_dispatch:
 
 jobs:
@@ -57,7 +58,7 @@ jobs:
     - name: phpize
       run: phpize
     - name: configure
-      run: configure --with-uv --enable-debug-pack --with-prefix=${{steps.setup-php.outputs.prefix}}
+      run: configure --with-uv=shared --enable-debug-pack --with-prefix=${{steps.setup-php.outputs.prefix}}
     - name: make
       run: nmake
     - name: test
@@ -73,3 +74,20 @@ jobs:
         echo extension=uv >> php-bin\php.ini
         php-bin\php.exe -m
         nmake test TESTS="--show-diff tests"
+    - name: Create binary archive from release
+      run: |
+        mkdir ext_uv-${{ github.event.release.tag_name }}
+        copy /Y php-bin\ext\php_uv.dll ext_uv-${{ github.event.release.tag_name }}
+        copy /Y php-bin\libuv.dll ext_uv-${{ github.event.release.tag_name }}
+
+        7z a ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-${{steps.setup-php.outputs.toolset}}-x64.zip ext_uv-${{ github.event.release.tag_name }}\* -tzip -y
+    - name: Upload the windows binary artifacts
+      uses: svenstaro/upload-release-action@v2
+      with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-${{steps.setup-php.outputs.toolset}}-x64.zip
+          asset_name: ext_uv-${{ github.event.release.tag_name }}-windows
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+          body: "Windows binary - libuv.dll and php_uv.dll "
