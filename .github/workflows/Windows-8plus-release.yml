@@ -29,7 +29,7 @@ jobs:
             copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release_TS\php-${{matrix.php}}\uv.dll uv.dll
         ) else if "${{matrix.thread}}" == "nts" (
             copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release\pecl-${{matrix.php}}\php_uv.dll php_uv.dll
-            copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release\php-${{matrix.php}}\uv.dll php_uv.dll
+            copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release\php-${{matrix.php}}\uv.dll uv.dll
         )
         7z a ext_uv-${{ github.event.release.tag_name }}-${{matrix.php}}-${{ matrix.thread }}-vs16-x64.zip uv.dll php_uv.dll -tzip -y
     - name: Upload the windows binary artifacts
