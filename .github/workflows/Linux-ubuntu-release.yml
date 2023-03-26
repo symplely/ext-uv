@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        operating-system: [ubuntu-18.04, ubuntu-20.04, ubuntu-latest]
+        operating-system: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
         php-versions: ['7.4', '8.0', '8.1', '8.2']
         threads: [ts, nts]
     steps:
@@ -48,10 +48,10 @@ jobs:
         id: build-deb-action
         uses: jiro4989/build-deb-action@v2
         with:
-          package: evt_uv
+          package: php-uv_${{ matrix.php-versions }}_${{ matrix.threads }}_${{ matrix.operating-system }}
           package_root: .debpkg
           maintainer: Lawrence Stubbs lstubbs@techno.express
-          version: ${{ github.ref }}_${{ matrix.php-versions }}_${{ matrix.threads }}_${{ steps.setup-deb.outputs.OS_CODENAME }} # refs/tags/v*.*.*
+          version: ${{ github.ref }} # refs/tags/v*.*.*
           arch: 'amd64'
           depends: 'libuv1, php-common'
           desc: 'uv provides access to underlying libuv functions.'
@@ -60,8 +60,8 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{steps.build-deb-action.outputs.file_name}}
-          asset_name: ${{steps.build-deb-action.outputs.file_name}}
+          asset_name: ext_uv_${{ github.ref }}_${{ matrix.php-versions }}_${{ matrix.threads }}_${{ matrix.operating-system }}
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
-          body: ${{steps.build-deb-action.outputs.file_name}} for ${{ matrix.operating-system }}
+          body: ${{steps.build-deb-action.outputs.file_name}} for ${{ steps.setup-deb.outputs.OS_CODENAME }}
