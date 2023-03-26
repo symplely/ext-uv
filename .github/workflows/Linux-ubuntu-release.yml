@@ -40,7 +40,7 @@ jobs:
           mkdir -p .debpkg/"$(php-config --extension-dir)"
           cp -f modules/uv.so .debpkg/"$(php-config --extension-dir)"
           chmod +x ./cmd/os.sh
-          sudo ./cmd/os.sh
+          echo "OS_CODENAME=$(sudo ./cmd/os.sh)" >> $GITHUB_OUTPUT
         # mkdir -p .debpkg/DEBIAN
         # echo -e 'echo "extension=uv.so" >> "$(php -r 'echo php_ini_loaded_file();')"' > .debpkg/DEBIAN/postinst
         # chmod +x .debpkg/DEBIAN/postinst
@@ -51,7 +51,7 @@ jobs:
           package: evt_uv
           package_root: .debpkg
           maintainer: Lawrence Stubbs lstubbs@techno.express
-          version: ${{ github.ref }}_${{ matrix.php-versions }}_${{ matrix.threads }}_${{steps.setup-deb.outputs}} # refs/tags/v*.*.*
+          version: ${{ github.ref }}_${{ matrix.php-versions }}_${{ matrix.threads }}_${{ steps.setup-deb.outputs.OS_CODENAME }} # refs/tags/v*.*.*
           arch: 'amd64'
           depends: 'libuv1, php-common'
           desc: 'uv provides access to underlying libuv functions.'
