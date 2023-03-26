@@ -16,7 +16,7 @@ jobs:
       matrix:
         version: ['7.4']
         arch: [x64]
-        threads: [ts, nts]
+        threads: [ts]
         libuv: [ 1.44.2 ]
     steps:
     - name: Checkout
@@ -64,15 +64,13 @@ jobs:
       run: nmake
     - name: Create binary archive from release
       run: |
-        mkdir ext_uv-${{ github.event.release.tag_name }}
         if "${{matrix.threads}}" == "ts" (
-            copy /Y x64\Release_TS\php_uv.dll ext_uv-${{ github.event.release.tag_name }}
+            copy /Y x64\Release_TS\php_uv.dll php_uv.dll
         ) else if "${{matrix.threads}}" == "nts" (
-            copy /Y x64\Release\php_uv.dll ext_uv-${{ github.event.release.tag_name }}
+            copy /Y x64\Release\php_uv.dll php_uv.dll
         )
-        copy /Y ..\deps\bin\uv.dll ext_uv-${{ github.event.release.tag_name }}
-        dir ext_uv-${{ github.event.release.tag_name }}
-        7z a ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-${{steps.setup-php.outputs.toolset}}-x64.zip ext_uv-${{ github.event.release.tag_name }}\* -tzip -y
+        copy /Y ..\deps\bin\uv.dll uv.dll
+        7z a ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-${{steps.setup-php.outputs.toolset}}-x64.zip uv.dll php_uv.dll -tzip -y
     - name: Upload the windows binary artifacts
       uses: svenstaro/upload-release-action@v2
       with:
