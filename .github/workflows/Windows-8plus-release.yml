@@ -37,7 +37,7 @@ jobs:
       with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ext_uv-${{ github.event.release.tag_name }}-${{matrix.php}}-${{ matrix.thread }}-vs16-x64.zip
-          asset_name: ext_uv-${{ github.event.release.tag_name }}-windows
+          asset_name: ext_uv-${{ github.event.release.tag_name }}-${{matrix.php}}-${{ matrix.thread }}-vs16-x64
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true

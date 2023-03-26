@@ -71,13 +71,13 @@ jobs:
             copy /Y x64\Release\php_uv.dll php_uv.dll
         )
         copy /Y ..\deps\bin\uv.dll uv.dll
-        7z a ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-${{steps.setup-php.outputs.toolset}}-x64.zip uv.dll php_uv.dll -tzip -y
+        7z a ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-vc15-x64.zip uv.dll php_uv.dll -tzip -y
     - name: Upload the windows binary artifacts
       uses: svenstaro/upload-release-action@v2
       with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-${{steps.setup-php.outputs.toolset}}-x64.zip
-          asset_name: ext_uv-${{ github.event.release.tag_name }}-windows
+          file: ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-vc15-x64.zip
+          asset_name: ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-vc15-x64
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
