@@ -3,6 +3,7 @@ name: Windows PHP 7.4 release
 
 on:
   release:
+    types: [published]
 
 jobs:
   windows:
@@ -16,7 +17,7 @@ jobs:
       matrix:
         version: ['7.4']
         arch: [x64]
-        threads: [ts]
+        threads: [ts, nts]
         libuv: [ 1.44.2 ]
     steps:
     - name: Checkout
@@ -37,7 +38,7 @@ jobs:
         curl -L https://github.com/libuv/libuv/archive/refs/tags/v${{matrix.libuv}}.zip --output libuv-${{matrix.libuv}}.zip
         unzip -xoq libuv-${{matrix.libuv}}.zip
         cd libuv-${{matrix.libuv}}
-        cmake . -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release
+        cmake . -DBUILD_TESTING=OFF
         cmake --build . --config Release
         mkdir ..\..\deps\include\uv
         mkdir ..\..\deps\lib

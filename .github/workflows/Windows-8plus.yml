@@ -21,6 +21,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
     - name: Build PHP ${{ matrix.php }}-${{ matrix.thread }} with libuv and ext-uv
-      run: .\cmd\compile_x64.bat --php ${{ matrix.php }} --${{ matrix.thread }} --shared
+      run: .\cmd\compile_x64.bat --php ${{ matrix.php }} --${{ matrix.thread }}
     - name: Run tests
       run: .\cmd\windows_run_test.bat --php ${{ matrix.php }} --${{ matrix.thread }}
