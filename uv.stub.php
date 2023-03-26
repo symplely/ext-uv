@@ -527,7 +527,7 @@ final class UVLoop
 {
 }
 
-final class UVStream extends UV
+class UVStream extends UV
 {
 }
 
