@@ -1,3 +1,4 @@
+#!/bin/bash
 lsb_release='/usr/bin/lsb_release'
 architecture=`uname -i`
 os='unknown'
