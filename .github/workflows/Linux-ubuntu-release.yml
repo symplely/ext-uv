@@ -1,0 +1,65 @@
+name: Linux ubuntu release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  multi:
+    name: ${{ matrix.operating-system }} CI - PHP ${{ matrix.php-versions }}-${{ matrix.threads }}
+    runs-on: ${{ matrix.operating-system }}
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        operating-system: [ubuntu-18.04, ubuntu-20.04, ubuntu-latest]
+        php-versions: ['7.4', '8.0', '8.1', '8.2']
+        threads: [ts, nts]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          coverage: none
+        env:
+          phpts: ${{ matrix.threads }} # specify ts or nts
+      - name: Install libuv
+        run: |
+          sudo apt-get install libuv1-dev -y
+      - name: Build ext-uv
+        run: |
+          phpize
+          ./configure --with-uv=$(readlink -f `pwd`/libuv)
+          make
+          sudo make install
+      - name: Setup deb
+        run: |
+          mkdir -p .debpkg/"$(php-config --extension-dir)"
+          ls modules
+          cp -f modules/uv.so .debpkg/"$(php-config --extension-dir)"
+        # mkdir -p .debpkg/DEBIAN
+        # echo -e 'echo "extension=uv.so" >> "$(php -r 'echo php_ini_loaded_file();')"' > .debpkg/DEBIAN/postinst
+        # chmod +x .debpkg/DEBIAN/postinst
+      - name: Create deb package
+        id: build-deb-action
+        uses: jiro4989/build-deb-action@v2
+        with:
+          package: evt_uv
+          package_root: .debpkg
+          maintainer: Lawrence Stubbs lstubbs@techno.express
+          version: ${{ github.ref }}-${{ matrix.php-versions }}-${{ matrix.threads }} # refs/tags/v*.*.*
+          arch: 'amd64'
+          depends: 'libuv1, php-common'
+          desc: 'uv provides access to underlying libuv functions.'
+      - name: Upload the deb binary artifacts
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{steps.build-deb-action.outputs.file_name}}
+          asset_name: ${{steps.build-deb-action.outputs.file_name}}
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+          body: ${{steps.build-deb-action.outputs.file_name}} for ${{ matrix.operating-system }}
