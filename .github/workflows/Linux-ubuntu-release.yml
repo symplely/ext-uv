@@ -48,7 +48,7 @@ jobs:
         id: build-deb-action
         uses: jiro4989/build-deb-action@v2
         with:
-          package: php-uv_${{ matrix.php-versions }}_${{ matrix.threads }}_${{ matrix.operating-system }}
+          package: php-uv-${{ matrix.php-versions }}-${{ matrix.threads }}-${{ matrix.operating-system }}
           package_root: .debpkg
           maintainer: Lawrence Stubbs lstubbs@techno.express
           version: ${{ github.ref }} # refs/tags/v*.*.*
