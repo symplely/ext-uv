@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  linux_centos_stream:
+  linux:
     strategy:
       fail-fast: false
       matrix:
