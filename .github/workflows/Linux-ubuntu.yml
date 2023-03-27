@@ -8,7 +8,6 @@ jobs:
   multi:
     name: ${{ matrix.operating-system }} CI - PHP ${{ matrix.php-versions }}-${{ matrix.threads }}
     runs-on: ${{ matrix.operating-system }}
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
