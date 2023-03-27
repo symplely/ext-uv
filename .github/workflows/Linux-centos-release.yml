@@ -41,20 +41,20 @@ jobs:
         id: build-rpm-action
         uses: jiro4989/build-rpm-action@v2
         with:
-            summary: 'libuv PHP wrapper.'
-            package: ext_uv-php8.2-${{ matrix.container.name }}
-            package_root: .rpmpkg
-            maintainer: l. stubbs lstubbs@techno.express
-            version: ${{ github.ref }} # refs/tags/v*.*.*
-            arch: 'x86_64'
-            desc: 'uv provides access to underlying libuv functions.'
+          summary: 'libuv PHP wrapper.'
+          package: ext_uv-php8.2-${{ matrix.container.name }}
+          package_root: .rpmpkg
+          maintainer: l. stubbs lstubbs@techno.express
+          version: ${{ github.ref }} # refs/tags/v*.*.*
+          arch: 'x86_64'
+          desc: 'uv provides access to underlying libuv functions.'
       - name: Upload the rpm binary artifacts
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{steps.build-rpm-action.outputs.file_name}}
-          asset_name: ext_uv_${{ github.ref }}_${{ matrix.container.name }}
+          file: ./*.rpm
+          asset_name: ext_uv_php8.2-${{ github.ref }}_${{ matrix.container.name }}
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
-          body: ${{steps.build-rpm-action.outputs.file_name}} for ${{ steps.setup-rpm.outputs.OS_CODENAME }}
+          body: ext_uv_php8.2-${{ github.ref }}_${{ matrix.container.name }} for ${{ steps.setup-rpm.outputs.OS_CODENAME }}
