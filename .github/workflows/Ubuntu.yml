@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        operating-system: [ubuntu-18.04, ubuntu-20.04, ubuntu-latest]
+        operating-system: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
         php-versions: ['7.4', '8.0', '8.1', '8.2']
         threads: [ts, nts]
     steps:
@@ -37,6 +37,4 @@ jobs:
       - name: Run tests
         env:
           NO_INTERACTION: 1
-        run: |
-          php run-tests.php -p `which php` --offline --show-diff --set-timeout 120
-          ls
+        run: php run-tests.php -p `which php` --offline --show-diff --set-timeout 120
