@@ -1,0 +1,59 @@
+name: CentOS 7 release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        container:
+        - {os: 'centos:7', cli: 'yum', dev: 'libuv-devel php-devel which', dep: 'yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm https://rpms.remirepo.net/enterprise/remi-release-7.rpm', pre: "yum-config-manager --disable 'remi-php*' && yum-config-manager --enable remi-php82", name: 'centos_7'}
+        php-versions: ['74', '80', '81', '82']
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install PHP and Build tools
+        run: |
+          ${{ matrix.container.dep }} -y
+          ${{ matrix.container.cli }} update -y
+          ${{ matrix.container.pre }}${{ matrix.php-versions }}
+          ${{ matrix.container.cli }} install sudo git ${{ matrix.container.dev }} libtool php-pear -y
+      - name: Build ext-uv
+        run: |
+          phpize
+          ./configure --with-uv=$(readlink -f `pwd`/libuv)
+          make
+          make install
+      - name: Setup rpm
+        id: setup-rpm
+        run: |
+          mkdir -p .rpmpkg/"$(php-config --extension-dir)"
+          cp -f modules/uv.so .rpmpkg/"$(php-config --extension-dir)"
+          chmod +x ./cmd/os.sh
+          echo "OS_CODENAME=$(./cmd/os.sh)" >> $GITHUB_OUTPUT
+      - name: Create rpm package
+        id: build-rpm-action
+        uses: jiro4989/build-rpm-action@v2.5
+        with:
+          summary: 'libuv PHP wrapper.'
+          package: ext_uv-php${{ matrix.php-versions }}_${{ steps.setup-rpm.outputs.OS_CODENAME }}
+          package_root: .rpmpkg
+          maintainer: l. stubbs lstubbs@techno.express
+          version: ${{ github.ref }} # refs/tags/v*.*.*
+          arch: 'x86_64'
+          desc: 'uv provides access to underlying libuv functions.'
+      - name: Upload the rpm binary artifacts
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./*.rpm, !./*-debuginfo-*.rpm
+          asset_name: ext_uv_php${{ matrix.php-versions }}-${{ github.ref }}_${{ matrix.container.name }}
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+          body: ext_uv_php${{ matrix.php-versions }}-${{ github.ref }}_${{ matrix.container.name }} for ${{ steps.setup-rpm.outputs.OS_CODENAME }}

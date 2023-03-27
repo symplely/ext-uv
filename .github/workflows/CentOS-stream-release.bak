@@ -1,4 +1,4 @@
-name: Linux centos release
+name: CentOS stream release
 
 on:
   release:
@@ -10,8 +10,8 @@ jobs:
       fail-fast: false
       matrix:
         container:
-        - {os: 'centos:7', cli: 'yum', dev: 'libuv-devel php-devel which', dep: 'yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm https://rpms.remirepo.net/enterprise/remi-release-7.rpm', pre: "yum-config-manager --disable 'remi-php*' && yum-config-manager --enable remi-php82", name: 'centos_7'}
         - {os: 'centos:latest', cli: 'dnf', dev: 'https://rpmfind.net/linux/centos/8-stream/PowerTools/x86_64/os/Packages/libuv-devel-1.41.1-1.el8_4.x86_64.rpm php-devel', dep: 'sed -i "s/mirrorlist/#mirrorlist/g" /etc/yum.repos.d/CentOS-* && sed -i "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-* && dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -y && /usr/bin/crb enable && dnf install centos-release-stream -y && dnf swap centos-{linux,stream}-repos -y && dnf distro-sync -y && dnf install https://rpms.remirepo.net/enterprise/remi-release-8.rpm', pre: 'dnf -y install yum-utils && dnf module reset php && dnf module install php:remi-8.2 -y', name: 'centos_stream8'}
+        php-versions: ['7.4', '8.0', '8.1', '8.2']
     runs-on: ubuntu-latest
     container: ${{ matrix.container.os }}
 
@@ -22,7 +22,7 @@ jobs:
         run: |
           ${{ matrix.container.dep }} -y
           ${{ matrix.container.cli }} update -y
-          ${{ matrix.container.pre }}
+          ${{ matrix.container.pre }}${{ matrix.php-versions }}
           ${{ matrix.container.cli }} install sudo git ${{ matrix.container.dev }} libtool php-pear -y
       - name: Build ext-uv
         run: |
@@ -42,7 +42,7 @@ jobs:
         uses: jiro4989/build-rpm-action@v2
         with:
           summary: 'libuv PHP wrapper.'
-          package: ext_uv-php8.2-${{ matrix.container.name }}
+          package: ext_uv-php${{ matrix.php-versions }}_${{ steps.setup-rpm.outputs.OS_CODENAME }}
           package_root: .rpmpkg
           maintainer: l. stubbs lstubbs@techno.express
           version: ${{ github.ref }} # refs/tags/v*.*.*
@@ -52,9 +52,9 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./*.rpm
-          asset_name: ext_uv_php8.2-${{ github.ref }}_${{ matrix.container.name }}
+          file: ./*.rpm, !./*-debuginfo-*.rpm
+          asset_name: ext_uv_php${{ matrix.php-versions }}-${{ github.ref }}_${{ matrix.container.name }}
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
-          body: ext_uv_php8.2-${{ github.ref }}_${{ matrix.container.name }} for ${{ steps.setup-rpm.outputs.OS_CODENAME }}
+          body: ext_uv_php${{ matrix.php-versions }}-${{ github.ref }}_${{ matrix.container.name }} for ${{ steps.setup-rpm.outputs.OS_CODENAME }}

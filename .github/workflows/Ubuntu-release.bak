@@ -1,4 +1,4 @@
-name: Linux ubuntu release
+name: Ubuntu release
 
 on:
   release:

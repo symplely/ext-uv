@@ -14,12 +14,10 @@ jobs:
         php-versions: ['74', '80', '81', '82']
     runs-on: ubuntu-latest
     container: ${{ matrix.container.os }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Install PHP and Build tools
-        id: install-build
         run: |
           ${{ matrix.container.dep }} -y
           ${{ matrix.container.cli }} update -y
