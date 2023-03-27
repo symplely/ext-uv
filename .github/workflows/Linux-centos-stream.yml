@@ -1,0 +1,41 @@
+name: Linux centos stream
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux_centos_stream:
+    strategy:
+      fail-fast: false
+      matrix:
+        container:
+        - {os: 'centos:stream8', cli: 'dnf', dev: 'https://rpmfind.net/linux/centos/8-stream/PowerTools/x86_64/os/Packages/libuv-devel-1.41.1-1.el8_4.x86_64.rpm php-devel', dep: 'dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -y && /usr/bin/crb enable && dnf install https://rpms.remirepo.net/enterprise/remi-release-8.rpm', pre: 'dnf -y install yum-utils && dnf module reset php && dnf module install -y php:remi-'}
+        php-versions: ['7.4', '8.0', '8.1', '8.2']
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install PHP and Build tools
+        id: install-build
+        run: |
+          ${{ matrix.container.dep }} -y
+          ${{ matrix.container.cli }} update -y
+          ${{ matrix.container.pre }}${{ matrix.php-versions }}
+          ${{ matrix.container.cli }} install sudo git ${{ matrix.container.dev }} libtool php-pear -y
+          chmod +x ./cmd/os.sh
+          echo "OS_CODENAME=$(./cmd/os.sh)" >> $GITHUB_OUTPUT
+      - name: Build ext-uv
+        run: |
+          phpize
+          ./configure --with-uv=$(readlink -f `pwd`/libuv)
+          make
+          make install
+          echo "extension=uv.so" >> "$(php -r 'echo php_ini_loaded_file();')"
+      - name: Run tests
+        env:
+          NO_INTERACTION: 1
+        run: |
+          echo ${{ steps.install-build.outputs.OS_CODENAME }}
+          php run-tests.php -p `which php` --offline --show-diff --set-timeout 120
