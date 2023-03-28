@@ -1,4 +1,4 @@
-name: CentOS stream
+name: CentOS Stream
 
 on:
   pull_request:

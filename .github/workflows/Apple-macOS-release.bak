@@ -1,5 +1,5 @@
 # GitHub Action for PHP with extensions
-name: Apple macOS release
+name: Apple macOS Release
 
 on:
   release:
@@ -25,8 +25,7 @@ jobs:
           tools: pecl
           extensions: curl, fileinfo, mbstring, openssl, simplexml, dom, sockets, sodium, ffi, opcache
       - name: Brew install
-        run: |
-          brew install automake
+        run: brew install automake
 
       - name: Build ext-uv
         run: |
@@ -34,3 +33,24 @@ jobs:
           ./configure
           make
           make install
+      - name: Create binary archive
+        run: |
+            cd
+            tar -zcvf /backup/filename.tgz .
+      - name: Get runner environment variables
+        id: runner
+        uses: TheTechsTech/action-environment-info@v1.0.4
+      - name: Print output
+        id: output
+        run: |
+                echo ${{ format('platform: {0}, arch: {1}, release: {2}, version: {3}, hostname: {4}, name: {5}', steps.runner.outputs.platform, steps.runner.outputs.arch, steps.runner.outputs.release, steps.runner.outputs.version, steps.runner.outputs.hostname, steps.runner.outputs.name) }}
+      - name: Upload the binary artifacts
+        uses: svenstaro/upload-release-action@v2
+        with:
+            repo_token: ${{ secrets.GITHUB_TOKEN }}
+            file: ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-${{steps.setup-php.outputs.vs}}-x64.zip
+            asset_name: ext_uv-${{ github.event.release.tag_name }}-${{matrix.version}}-${{ matrix.threads }}-${{steps.setup-php.outputs.vs}}-x64
+            tag: ${{ github.ref }}
+            overwrite: true
+            file_glob: true
+            body: "Windows binary - uv.dll and php_uv.dll "

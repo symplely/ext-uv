@@ -1,5 +1,5 @@
 # GitHub Action for PHP with extensions
-name: Windows PHP 7.4 release
+name: Windows PHP 7.4 Release
 
 on:
   release:

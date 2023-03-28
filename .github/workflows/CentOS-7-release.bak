@@ -1,4 +1,4 @@
-name: CentOS 7 release
+name: CentOS 7 Release
 
 on:
   release:

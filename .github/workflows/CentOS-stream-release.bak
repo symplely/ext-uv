@@ -1,4 +1,4 @@
-name: CentOS stream release
+name: CentOS Stream Release
 
 on:
   release:
