@@ -1,6 +1,11 @@
 # ext-uv
 
-[![Linux](https://github.com/symplely/ext-uv/actions/workflows/Linux.yml/badge.svg)](https://github.com/symplely/ext-uv/actions/workflows/Linux.yml)[![Windows](https://github.com/symplely/ext-uv/actions/workflows/Windows.yml/badge.svg)](https://github.com/symplely/ext-uv/actions/workflows/Windows.yml)[![macOS](https://github.com/symplely/ext-uv/actions/workflows/macOS.yml/badge.svg)](https://github.com/symplely/ext-uv/actions/workflows/macOS.yml)
+[![Apple macOS](https://github.com/symplely/ext-uv/actions/workflows/Apple-macOS.yml/badge.svg)](https://github.com/symplely/ext-uv/actions/workflows/Apple-macOS.yml)
+[![CentOS 7](https://github.com/symplely/ext-uv/actions/workflows/CentOS-7.yml/badge.svg)](https://github.com/symplely/ext-uv/actions/workflows/CentOS-7.yml)
+[![CentOS stream](https://github.com/symplely/ext-uv/actions/workflows/Centos-stream.yml/badge.svg)](https://github.com/symplely/ext-uv/actions/workflows/Centos-stream.yml)
+[![Ubuntu](https://github.com/symplely/ext-uv/actions/workflows/Ubuntu.yml/badge.svg)](https://github.com/symplely/ext-uv/actions/workflows/Ubuntu.yml)
+[![Windows PHP 7.4](https://github.com/symplely/ext-uv/actions/workflows/Windows-7.4.yml/badge.svg)](https://github.com/symplely/ext-uv/actions/workflows/Windows-7.4.yml)
+[![Windows PHP 8+](https://github.com/symplely/ext-uv/actions/workflows/Windows-8plus.yml/badge.svg)](https://github.com/symplely/ext-uv/actions/workflows/Windows-8plus.yml)
 
 Interface to **libuv** for php.
 
