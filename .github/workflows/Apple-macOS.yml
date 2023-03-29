@@ -7,7 +7,6 @@ on:
 
 jobs:
   macos:
-    name: macOS
     runs-on: macos-latest
     strategy:
       fail-fast: false
