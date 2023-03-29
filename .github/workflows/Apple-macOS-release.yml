@@ -6,7 +6,7 @@ on:
     types: [published]
 
 jobs:
-  macos:
+  apple:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       fail-fast: false
@@ -34,15 +34,17 @@ jobs:
         id: runner
         uses: TheTechsTech/action-environment-info@v1.0.5
       - name: Create binary archive
+        id: archive
         run: |
           cd "$(php-config --extension-dir)"
-          tar -zcvf ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_${{steps.runner.outputs.arch}}-${{steps.runner.outputs.name}}.macos_so.tgz uv.so
+          tar -zcvf ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_macos-${{steps.runner.outputs.name}}.tgz uv.so
+          echo "OS_LIB=$(php-config --extension-dir)" >> $GITHUB_OUTPUT
       - name: Upload the binary artifacts
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_${{steps.runner.outputs.arch}}-${{steps.runner.outputs.name}}.macos_so.tgz
-          asset_name: ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_${{steps.runner.outputs.arch}}-${{steps.runner.outputs.name}}.macos_so.tgz
+          file: ${{ steps.archive.outputs.OS_LIB }}/ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_macos-${{steps.runner.outputs.name}}.tgz
+          asset_name: ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_macos-${{steps.runner.outputs.name}}.tgz
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true

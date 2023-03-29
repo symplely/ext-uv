@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  macos:
+  apple:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       fail-fast: false
