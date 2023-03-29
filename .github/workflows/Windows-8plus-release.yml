@@ -25,20 +25,17 @@ jobs:
     - name: Create binary archive from release
       run: |
         if "${{matrix.thread}}" == "ts" (
-            copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release_TS\pecl-${{matrix.php}}\php_uv.dll php_uv.dll
-            copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release_TS\php-${{matrix.php}}\uv.dll uv.dll
+            copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release_TS\php-${{matrix.php}}-ts-Win32-vs16-x64.zip php-${{matrix.php}}-ts-Win32-vs16-x64.zip
         ) else if "${{matrix.thread}}" == "nts" (
-            copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release\pecl-${{matrix.php}}\php_uv.dll php_uv.dll
-            copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release\php-${{matrix.php}}\uv.dll uv.dll
+            copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release\php-${{matrix.php}}-nts-Win32-vs16-x64.zip php-${{matrix.php}}-nts-Win32-vs16-x64.zip
         )
-        7z a ext_uv-${{ github.event.release.tag_name }}-${{matrix.php}}-${{ matrix.thread }}-vs16-x64.zip uv.dll php_uv.dll -tzip -y
     - name: Upload the windows binary artifacts
       uses: svenstaro/upload-release-action@v2
       with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ext_uv-${{ github.event.release.tag_name }}-${{matrix.php}}-${{ matrix.thread }}-vs16-x64.zip
-          asset_name: ext_uv-${{ github.event.release.tag_name }}-${{matrix.php}}-${{ matrix.thread }}-vs16-x64
+          file: php-${{matrix.php}}-${{ matrix.thread }}-Win32-vs16-x64.zip
+          asset_name: php-${{matrix.php}}-${{ matrix.thread }}-Win32-vs16-x64_static_ext_uv-${{ github.event.release.tag_name }}.zip
           tag: ${{ github.ref }}
           overwrite: true
-          file_glob: true
-          body: "Windows binary - uv.dll and php_uv.dll "
+          file_glob: false
+          body: "Static PHP-${{matrix.php}}-${{ matrix.thread }} Windows build, includes libuv with all other extensions"
