@@ -36,7 +36,7 @@ jobs:
       - name: Create binary archive
         id: archive
         run: |
-          tar -zvf ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_macos-${{steps.runner.outputs.version}}.tgz "$(php-config --extension-dir)"/uv.so
+          tar -zcvf ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_macos-${{steps.runner.outputs.version}}.tgz "$(php-config --extension-dir)"/uv.so
           echo "OS_LIB=$(php-config --extension-dir)" >> $GITHUB_OUTPUT
       - name: Upload the binary artifacts
         uses: svenstaro/upload-release-action@v2
