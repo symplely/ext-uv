@@ -20,8 +20,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Build PHP ${{ matrix.php }}-${{ matrix.thread }} with libuv and ext-uv
-      run: .\cmd\compile_x64.bat --php ${{ matrix.php }} --${{ matrix.thread }} --shared
+    - name: Build static PHP ${{ matrix.php }}-${{ matrix.thread }} with libuv and ext-uv
+      run: .\cmd\compile_x64.bat --php ${{ matrix.php }} --${{ matrix.thread }}
     - name: Create binary archive from release
       run: |
         if "${{matrix.thread}}" == "ts" (
