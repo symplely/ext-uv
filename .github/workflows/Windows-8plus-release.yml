@@ -25,7 +25,7 @@ jobs:
     - name: Create binary archive from release
       run: |
         if "${{matrix.thread}}" == "ts" (
-            copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release_TS\php-${{matrix.php}}-ts-Win32-vs16-x64.zip php-${{matrix.php}}-ts-Win32-vs16-x64.zip
+            copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release_TS\php-${{matrix.php}}-Win32-vs16-x64.zip php-${{matrix.php}}-ts-Win32-vs16-x64.zip
         ) else if "${{matrix.thread}}" == "nts" (
             copy /Y php-sdk\phpdev\vs16\x64\php-${{matrix.php}}\x64\Release\php-${{matrix.php}}-nts-Win32-vs16-x64.zip php-${{matrix.php}}-nts-Win32-vs16-x64.zip
         )
