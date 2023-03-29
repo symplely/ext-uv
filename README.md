@@ -11,9 +11,7 @@ Interface to **libuv** for php.
 
 ## Compile
 
-___Manually___
-
-For **Linux**
+For **Linux/macOS**
 
 ```bash
 git clone https://github.com/symplely/ext-uv.git
@@ -25,53 +23,23 @@ make install
 # add `extension=uv.so` to your php.ini
 ```
 
-___Automated___
+For **Windows**
 
-For **Debian** like distributions, Ubuntu...
-
-```bash
-apt-get install libuv1-dev php-pear -y
+```bat
+git clone https://github.com/symplely/ext-uv.git
+cd ext-uv
+.\cmd\compile_x64.bat --php 8.2.4 --ts
+rem files in
+dir php-sdk\phpdev\vs16\x64\php-8.2.4\x64\
 ```
 
-For **RedHat** like distributions, CentOS...
+# Binaries for Windows, Linux, Apple macOS
 
-```bash
-yum install libuv-devel php-pear -y
-```
-
-Now have **Pecl** auto compile, install, and setup.
-
-```bash
-pecl channel-update pecl.php.net
-pecl install uv-beta
-```
-
-### Windows 7.x
-
-Windows builds for stable PHP versions are available [from PECL](https://pecl.php.net/package/uv).
-
-Direct download latest from https://windows.php.net/downloads/pecl/releases/uv/
-
-Extract `libuv.dll` to same directory as `PHP` binary executable, and extract `php_uv.dll` to `ext\` directory.
-
-Enable extension `php_sockets.dll` and `php_uv.dll` in php.ini
-
-```powershell
-cd C:\Php
-Invoke-WebRequest "https://windows.php.net/downloads/pecl/releases/uv/0.2.4/php_uv-0.2.4-7.2-ts-vc15-x64.zip" -OutFile "php_uv-0.2.4.zip"
-Invoke-WebRequest "https://windows.php.net/downloads/pecl/releases/uv/0.2.4/php_uv-0.2.4-7.3-nts-vc15-x64.zip" -OutFile "php_uv-0.2.4.zip"
-Invoke-WebRequest "https://windows.php.net/downloads/pecl/releases/uv/0.2.4/php_uv-0.2.4-7.4-ts-vc15-x64.zip" -OutFile "php_uv-0.2.4.zip"
-7z x -y php_uv-0.2.4.zip libuv.dll php_uv.dll
-copy php_uv.dll ext\php_uv.dll
-del php_uv.dll
-del php_uv-0.2.4.zip
-echo extension=php_sockets.dll >> php.ini
-echo extension=php_uv.dll >> php.ini
-```
+- See [Releases](https://github.com/symplely/ext-uv/releases) page.
 
 ## Examples
 
-see examples and tests directory.
+see [examples](https://github.com/symplely/ext-uv/tree/master/examples) folder usage.
 
 ````php
 <?php
@@ -106,21 +74,17 @@ uv_run();
 
 * Shuhei Tanuma
 
-### Current Maintainer
-
-* Bob Weinand
-
 ## License
 
 PHP License
 
 ## Documentation
 
-Use your favorite **IDE** and pull in the provided [**stubs**](https://github.com/amphp/ext-uv/tree/master/stub).
+Use your favorite **IDE** and pull in the provided [**stubs**](https://github.com/symplely/ext-uv/tree/master/stubs), most functions DocBlock give overview of usage.
 
-For deeper usage understanding, see the online [book](https://nikhilm.github.io/uvbook/index.html) for a full tutorial overview.
+For deeper usage understanding, see the online [book](https://nikhilm.github.io/uvbook/index.html) or [An Introduction to libuv](https://codeahoy.com/learn/libuv/toc/) for a full tutorial overview.
 
-### Overview of __libuv__
+### Basic overview of __libuv__
 
 ## Design
 
