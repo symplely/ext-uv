@@ -14,7 +14,6 @@ jobs:
       matrix:
         operating-system: [macos-latest]
         php-versions: ['7.4', '8.0', '8.1', '8.2']
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -26,7 +25,6 @@ jobs:
           extensions: curl, fileinfo, mbstring, openssl, simplexml, dom, sockets, sodium, ffi, opcache
       - name: Brew install
         run: brew install automake
-
       - name: Build ext-uv
         run: |
           phpize
