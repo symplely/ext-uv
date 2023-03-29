@@ -38,7 +38,7 @@ jobs:
           echo "OS_CODENAME=$(./cmd/os.sh)" >> $GITHUB_OUTPUT
       - name: Create rpm package
         id: build-rpm-action
-        uses: jiro4989/build-rpm-action@v2.5
+        uses: jiro4989/build-rpm-action@v2
         with:
           summary: 'libuv PHP wrapper.'
           package: ext_uv-php${{ matrix.php-versions }}_${{ steps.setup-rpm.outputs.OS_CODENAME }}
