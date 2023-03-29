@@ -1,0 +1,52 @@
+# GitHub Action for PHP with extensions
+name: Apple macOS Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        operating-system: [macos-latest]
+        php-versions: ['7.4', '8.0', '8.1', '8.2']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup PHP, with composer and extensions
+        uses: shivammathur/setup-php@v2 #https://github.com/shivammathur/setup-php
+        with:
+          php-version: ${{ matrix.php-versions }}
+          tools: pecl
+          extensions: curl, fileinfo, mbstring, openssl, simplexml, dom, sockets, sodium, ffi, opcache
+      - name: Brew install
+        run: brew install automake
+
+      - name: Build ext-uv
+        run: |
+          phpize
+          ./configure
+          make
+          make install
+      - name: Get runner environment variables
+        id: runner
+        uses: TheTechsTech/action-environment-info@v1.0.5
+      - name: Create binary archive
+        run: |
+          cd "$(php-config --extension-dir)"
+          tar -zcvf ext_uv-${{ github.ref }}_php${{ matrix.php-versions }}_${{steps.runner.outputs.arch}}-${{steps.runner.outputs.name}}.so.tgz uv.so
+      - name: Upload the binary artifacts
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ext_uv-${{ github.ref }}_php${{ matrix.php-versions }}_${{steps.runner.outputs.arch}}-${{steps.runner.outputs.name}}.so.tgz
+          asset_name: ext_uv-${{ github.ref }}_php${{ matrix.php-versions }}_${{steps.runner.outputs.arch}}-${{steps.runner.outputs.name}}.so.tgz
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+          body: "macos binary - uv.so"
