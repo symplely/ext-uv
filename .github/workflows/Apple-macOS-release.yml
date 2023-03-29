@@ -36,16 +36,15 @@ jobs:
       - name: Create binary archive
         id: archive
         run: |
-          cd "$(php-config --extension-dir)"
-          tar -zcvf ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_macos-${{steps.runner.outputs.version}}.tgz uv.so
+          tar -zvf ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_macos-${{steps.runner.outputs.version}}.tgz "$(php-config --extension-dir)"/uv.so
           echo "OS_LIB=$(php-config --extension-dir)" >> $GITHUB_OUTPUT
       - name: Upload the binary artifacts
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ steps.archive.outputs.OS_LIB }}/ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_macos-${{steps.runner.outputs.version}}.tgz
+          file: ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_macos-${{steps.runner.outputs.version}}.tgz
           asset_name: ext_uv-${{ github.ref_name }}_php${{ matrix.php-versions }}_macos-${{steps.runner.outputs.version}}.tgz
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
-          body: "macos binary - uv.so"
+          body: "macos binary - ${{ steps.archive.outputs.OS_LIB }}/uv.so"
