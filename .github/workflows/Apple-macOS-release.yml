@@ -3,7 +3,7 @@ name: Apple macOS Release
 
 on:
   release:
-    types: [published]
+    types: [published, edited]
 
 jobs:
   apple:

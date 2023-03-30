@@ -3,7 +3,7 @@ name: Windows PHP 8+ Release
 
 on:
   release:
-    types: [published]
+    types: [published, edited]
 
 jobs:
   windows:

@@ -3,7 +3,7 @@ name: Windows PHP 7.4 Release
 
 on:
   release:
-    types: [published]
+    types: [published, edited]
 
 jobs:
   windows:
