@@ -25,10 +25,12 @@ jobs:
           dnf install centos-release-stream -y
           dnf swap centos-{linux,stream}-repos -y
           dnf distro-sync -y
+          dnf install https://rpms.remirepo.net/enterprise/remi-release-8.rpm -y
           dnf update -y
           dnf install yum-utils -y
+          dnf module list php
           dnf module reset php
-          dnf module enable php:${{ matrix.php-versions }} -y
+          dnf module install -y php:remi-${{ matrix.php-versions }}
           dnf install https://rpmfind.net/linux/centos/8-stream/PowerTools/x86_64/os/Packages/libuv-devel-1.41.1-1.el8_4.x86_64.rpm -y
           dnf install sudo git php-devel libtool php-pear -y
       - name: Build ext-uv
