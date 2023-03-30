@@ -50,9 +50,9 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./*.rpm, !./*-debuginfo-*.rpm
+          file: ./*.rpm
           asset_name: ext_uv_php${{ matrix.php-versions }}-${{ github.event.release.tag_name  }}_centos7
           tag: ${{ github.ref }}
           overwrite: true
-          file_glob: false
+          file_glob: true
           body: ext_uv_php${{ matrix.php-versions }}-${{ github.event.release.tag_name }} for ${{ steps.setup-rpm.outputs.OS_CODENAME }}

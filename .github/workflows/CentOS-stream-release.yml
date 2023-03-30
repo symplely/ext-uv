@@ -57,7 +57,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./*.rpm, !./*-debuginfo-*.rpm
+          file: ./*.rpm
           asset_name: ext_uv_php${{ matrix.php-versions }}-${{ github.event.release.tag_name }}_stream8
           tag: ${{ github.ref }}
           overwrite: true
