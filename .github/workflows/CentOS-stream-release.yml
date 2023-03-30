@@ -57,7 +57,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./*.rpm, !./*-debuginfo-*.rpm
-          asset_name: ext_uv_php${{ matrix.php-versions }}-${{ github.event.release.tag_name }}_${{ matrix.container.name }}
+          asset_name: ext_uv_php${{ matrix.php-versions }}-${{ github.event.release.tag_name }}_stream8
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
