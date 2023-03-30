@@ -47,7 +47,7 @@ jobs:
         id: build-deb-action
         uses: jiro4989/build-deb-action@v2
         with:
-          package: ext_uv
+          package: ext-uv
           package_root: .debpkg
           maintainer: Lawrence Stubbs lstubbs@techno.express
           version: ${{ github.ref }} # refs/tags/v*.*.*
