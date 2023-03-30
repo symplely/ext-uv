@@ -2,7 +2,7 @@ name: CentOS Stream Release
 
 on:
   release:
-    types: [published]
+    types: [published, edited]
 
 jobs:
   stream_8:

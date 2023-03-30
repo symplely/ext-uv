@@ -2,7 +2,7 @@ name: CentOS 7 Release
 
 on:
   release:
-    types: [published]
+    types: [published, edited]
 
 jobs:
   centos_7:

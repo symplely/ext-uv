@@ -2,7 +2,7 @@ name: Ubuntu Release
 
 on:
   release:
-    types: [published]
+    types: [published, edited]
 
 jobs:
   multi:
