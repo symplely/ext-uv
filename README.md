@@ -9,9 +9,25 @@
 
 Interface to **libuv** for php.
 
-## Compile
+## Compiling for Linux, macOS, and Windows
 
-For **Linux/macOS**
+For **Apple macOS**
+
+```bash
+brew install libuv autoconf automake libtool pkg-config
+```
+
+For **Debian** like distributions, Ubuntu...
+
+```bash
+apt-get install libuv1-dev php-pear -y
+```
+
+For **RedHat** like distributions, CentOS...
+
+```bash
+yum install libuv-devel php-pear -y
+```
 
 ```bash
 git clone https://github.com/symplely/ext-uv.git
@@ -23,23 +39,27 @@ make install
 # add `extension=uv.so` to your php.ini
 ```
 
-For **Windows**
+For **Windows** - needs Visual Studio 2019
 
 ```bat
 git clone https://github.com/symplely/ext-uv.git
 cd ext-uv
-.\cmd\compile_x64.bat --php 8.2.4 --ts
+.\cmd\compile_x64.bat --php 8.2.4 --ts rem --shared results in uv.dll, php_uv.dll modules not loading
+rem for testing
+.\cmd\windows_run_test.bat --php 8.2.4 --ts
 rem files in
 dir php-sdk\phpdev\vs16\x64\php-8.2.4\x64\
 ```
 
-# Binaries for Windows, Linux, Apple macOS
+## Binaries for PHP 7.4 - 8.2, for Windows, Linux - Debian/Redhat, Apple macOS - 10.15, 11, 12
 
 - See [Releases](https://github.com/symplely/ext-uv/releases) page.
 
+> PHP 8+ versions for **Windows** are static builds, issues building `--shared`, results in a _shared_ module not loading correctly. PHP 7.4 for Windows can be built `static` or `shared` and correctly loads.
+
 ## Examples
 
-see [examples](https://github.com/symplely/ext-uv/tree/master/examples) folder usage.
+see [examples](https://github.com/symplely/ext-uv/tree/master/examples) folder for usage.
 
 ````php
 <?php
