@@ -9,20 +9,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        container:
-        - {os: 'centos:7', cli: 'yum', dev: 'libuv-devel php-devel which', dep: 'yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm https://rpms.remirepo.net/enterprise/remi-release-7.rpm', pre: "yum-config-manager --disable 'remi-php*' && yum-config-manager --enable remi-php"}
         php-versions: ['74', '80', '81', '82']
     runs-on: ubuntu-latest
-    container: ${{ matrix.container.os }}
+    container: centos:7
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Install PHP and Build tools
         run: |
-          ${{ matrix.container.dep }} -y
-          ${{ matrix.container.cli }} update -y
-          ${{ matrix.container.pre }}${{ matrix.php-versions }}
-          ${{ matrix.container.cli }} install sudo git ${{ matrix.container.dev }} libtool php-pear -y
+          yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm https://rpms.remirepo.net/enterprise/remi-release-7.rpm -y
+          yum update -y
+          yum-config-manager --disable 'remi-php*' && yum-config-manager --enable remi-php${{ matrix.php-versions }}
+          yum install git make gcc gcc-c++ binutils glibc-devel autoconf libtool bison re2c automake libxml2-devel sudo libuv-devel php-devel which php-pear -y
       - name: Build ext-uv
         run: |
           phpize
