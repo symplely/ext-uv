@@ -47,7 +47,7 @@ jobs:
         id: build-deb-action
         uses: jiro4989/build-deb-action@v2
         with:
-          package: ext_uv-php${{ matrix.php-versions }}-${{ matrix.threads }}-${{ matrix.operating-system }}
+          package: ext_uv
           package_root: .debpkg
           maintainer: Lawrence Stubbs lstubbs@techno.express
           version: ${{ github.ref }} # refs/tags/v*.*.*
@@ -62,5 +62,5 @@ jobs:
           asset_name: ext_uv_${{ github.ref }}_${{ matrix.php-versions }}_${{ matrix.threads }}_${{ matrix.operating-system }}
           tag: ${{ github.ref }}
           overwrite: true
-          file_glob: true
+          file_glob: false
           body: ${{steps.build-deb-action.outputs.file_name}} for ${{ steps.setup-deb.outputs.OS_CODENAME }}
