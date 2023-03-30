@@ -59,7 +59,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{steps.build-deb-action.outputs.file_name}}
-          asset_name: ext_uv_${{ github.event.release.tag_name }}_${{ matrix.php-versions }}_${{ matrix.threads }}_${{ matrix.operating-system }}
+          asset_name: ext_uv_${{ github.event.release.tag_name }}_php${{ matrix.php-versions }}_${{ matrix.threads }}_${{ matrix.operating-system }}_amd64.deb
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: false

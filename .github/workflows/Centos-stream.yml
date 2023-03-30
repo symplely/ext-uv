@@ -5,7 +5,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  linux:
+  stream_8:
+    name: PHP
     strategy:
       fail-fast: false
       matrix:

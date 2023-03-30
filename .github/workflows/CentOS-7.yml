@@ -5,7 +5,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  linux:
+  centos_7:
+    name: PHP
     strategy:
       fail-fast: false
       matrix:

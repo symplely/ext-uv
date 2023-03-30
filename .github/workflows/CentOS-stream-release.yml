@@ -5,7 +5,8 @@ on:
     types: [published]
 
 jobs:
-  linux:
+  stream_8:
+    name: PHP
     strategy:
       fail-fast: false
       matrix:
