@@ -1,7 +1,118 @@
 
 
+#include "TSRM.h"
+#include "php_uv.h"
+#include "php_main.h"
+#include "ext/standard/info.h"
+#include "zend_smart_str.h"
+
+typedef struct _php_interpreter_object interpreter_object;
+typedef struct _tsrm_tls_entry tsrm_tls_entry;
+
+ZEND_BEGIN_MODULE_GLOBALS(interpreter)
+    interpreter_object *current_thread;
+ZEND_END_MODULE_GLOBALS(interpreter)
+
+struct _php_interpreter_object
+{
+    zend_object obj;
+
+    void *context, *parent_context;
+
+    char *disable_functions;
+    char *disable_classes;
+    zval *output_handler; /* points to function which lives in the parent_context */
+
+    unsigned char bailed_out_in_eval; /* Patricide is an ugly thing.  Especially when it leaves bailout address mis-set */
+
+    unsigned char active;         /* A bailout will set this to 0 */
+    unsigned char parent_access;  /* May Sub_Interpreter_Parent be instantiated/used? */
+    unsigned char parent_read;    /* May parent vars be read? */
+    unsigned char parent_write;   /* May parent vars be written to? */
+    unsigned char parent_eval;    /* May arbitrary code be run in the parent? */
+    unsigned char parent_include; /* May arbitrary code be included in the parent? (includes require(), and *_once()) */
+    unsigned char parent_echo;    /* May content be echoed from the parent scope? */
+    unsigned char parent_call;    /* May functions in the parent scope be called? */
+    unsigned char parent_die;     /* Are $PARENT->die() / $PARENT->exit() enabled? */
+    unsigned long parent_scope;   /* 0 == Global, 1 == Active, 2 == Active->prior, 3 == Active->prior->prior, etc... */
+
+    char *parent_scope_name; /* Combines with parent_scope to refer to a named array as a symbol table */
+    int parent_scope_namelen;
+};
+
+struct _tsrm_tls_entry
+{
+    void **storage;
+    int count;
+    THREAD_T thread_id;
+    tsrm_tls_entry *next;
+};
+
+typedef struct
+{
+    size_t size;
+    ts_allocate_ctor ctor;
+    ts_allocate_dtor dtor;
+    size_t fast_offset;
+    int done;
+} tsrm_resource_type;
+
+#define INTERPRETER_G(v) TSRMG(interpreter_globals_id, zend_interpreter_globals *, v)
+#define INTERPRETER_TSRMLS_C TSRMLS_C
+
 #define TSRMLS_FETCH_FROM_CTX(ctx) void ***tsrm_ls = (void ***)ctx
 #define TSRMLS_SET_CTX(ctx) ctx = (void ***)tsrm_get_ls_cache()
+
+/* New thread handlers */
+static tsrm_thread_begin_func_t tsrm_new_thread_begin_handler = NULL;
+static tsrm_thread_end_func_t tsrm_new_thread_end_handler = NULL;
+static tsrm_shutdown_func_t tsrm_shutdown_handler = NULL;
+
+static void allocate_new_resource(tsrm_tls_entry **thread_resources_ptr, THREAD_T thread_id)
+{ /*{{{*/
+    int i;
+
+    TSRM_ERROR((TSRM_ERROR_LEVEL_CORE, "Creating data structures for thread %x", thread_id));
+    (*thread_resources_ptr) = (tsrm_tls_entry *)malloc(TSRM_ALIGNED_SIZE(sizeof(tsrm_tls_entry)) + tsrm_reserved_size);
+    (*thread_resources_ptr)->storage = NULL;
+    if (id_count > 0) {
+        (*thread_resources_ptr)->storage = (void **)malloc(sizeof(void *) * id_count);
+    }
+
+    (*thread_resources_ptr)->count = id_count;
+    (*thread_resources_ptr)->thread_id = thread_id;
+    (*thread_resources_ptr)->next = NULL;
+
+    /* Set thread local storage to this new thread resources structure */
+    tsrm_tls_set(*thread_resources_ptr);
+    TSRMLS_CACHE = *thread_resources_ptr;
+
+    if (tsrm_new_thread_begin_handler) {
+        tsrm_new_thread_begin_handler(thread_id);
+    }
+
+    for (i = 0; i < id_count; i++) {
+        if (resource_types_table[i].done) {
+            (*thread_resources_ptr)->storage[i] = NULL;
+        } else {
+            if (resource_types_table[i].fast_offset) {
+                (*thread_resources_ptr)->storage[i] = (void *)(((char *)(*thread_resources_ptr)) + resource_types_table[i].fast_offset);
+            } else {
+                (*thread_resources_ptr)->storage[i] = (void *)malloc(resource_types_table[i].size);
+            }
+
+            if (resource_types_table[i].ctor) {
+                resource_types_table[i].ctor((*thread_resources_ptr)->storage[i]);
+            }
+        }
+    }
+
+    if (tsrm_new_thread_end_handler) {
+        tsrm_new_thread_end_handler(thread_id);
+    }
+
+    tsrm_mutex_unlock(tsmm_mutex);
+} /*}}}*/
 
 /* these 3 APIs should only be used by people that fully understand the threading model
  * used by PHP/Zend and the selected SAPI. */
@@ -74,35 +185,8 @@ void *tsrm_new_interpreter_context(void)
     return tsrm_set_interpreter_context(current);
 } /*}}}*/
 
-    struct _php_interpreter_object
-{
-    zend_object obj;
-
-    void *context, *parent_context;
-
-    char *disable_functions;
-    char *disable_classes;
-    zval *output_handler; /* points to function which lives in the parent_context */
-
-    unsigned char bailed_out_in_eval; /* Patricide is an ugly thing.  Especially when it leaves bailout address mis-set */
-
-    unsigned char active;         /* A bailout will set this to 0 */
-    unsigned char parent_access;  /* May Sub_Interpreter_Parent be instantiated/used? */
-    unsigned char parent_read;    /* May parent vars be read? */
-    unsigned char parent_write;   /* May parent vars be written to? */
-    unsigned char parent_eval;    /* May arbitrary code be run in the parent? */
-    unsigned char parent_include; /* May arbitrary code be included in the parent? (includes require(), and *_once()) */
-    unsigned char parent_echo;    /* May content be echoed from the parent scope? */
-    unsigned char parent_call;    /* May functions in the parent scope be called? */
-    unsigned char parent_die;     /* Are $PARENT->die() / $PARENT->exit() enabled? */
-    unsigned long parent_scope;   /* 0 == Global, 1 == Active, 2 == Active->prior, 3 == Active->prior->prior, etc... */
-
-    char *parent_scope_name; /* Combines with parent_scope to refer to a named array as a symbol table */
-    int parent_scope_namelen;
-};
-
 /* TODO: It'd be nice if objects and resources could make it across... */
-#define PHP_SANDBOX_CROSS_SCOPE_ZVAL_COPY_CTOR(pzv) \
+#define PHP_THREAD_CROSS_SCOPE_ZVAL_COPY_CTOR(pzv) \
 { \
 	switch (Z_TYPE_P(pzv)) { \
 		case IS_RESOURCE: \
@@ -114,17 +198,15 @@ void *tsrm_new_interpreter_context(void)
 		{ \
 			HashTable *original_hashtable = Z_ARRVAL_P(pzv); \
 			array_init(pzv); \
-			zend_hash_apply_with_arguments(RUNKIT_53_TSRMLS_PARAM(original_hashtable), (apply_func_args_t)php_interpreter_array_deep_copy, 1, Z_ARRVAL_P(pzv) TSRMLS_CC); \
+			zend_hash_apply_with_arguments(INTERPRETER_53_TSRMLS_PARAM(original_hashtable), (apply_func_args_t)php_interpreter_array_deep_copy, 1, Z_ARRVAL_P(pzv) TSRMLS_CC); \
 			break; \
 		} \
 		default: \
 			zval_copy_ctor(pzv); \
 	} \
-	(pzv)->RUNKIT_REFCOUNT = 1; \
-	(pzv)->RUNKIT_IS_REF = 0; \
+	(pzv)->INTERPRETER_REFCOUNT = 1; \
+	(pzv)->INTERPRETER_IS_REF = 0; \
 }
-
-typedef struct _php_interpreter_object interpreter_object;
 
 #define PHP_INTERPRETER_FETCH(zval_p) (interpreter_object *)zend_objects_get_address(zval_p TSRMLS_CC)
 
@@ -187,13 +269,13 @@ PHP_METHOD(Sub_Interpreter, __construct)
     SG(headers_sent) = 1;
     SG(request_info).no_headers = 1;
     SG(options) = SAPI_OPTION_NO_CHDIR;
-    RUNKIT_G(current_sandbox) = objval; /* Needs to be set before RINIT */
+    INTERPRETER_G(current_thread) = objval; /* Needs to be set before RINIT */
     php_request_startup(TSRMLS_C);
-    RUNKIT_G(current_sandbox) = objval; /* But gets reset during RINIT -- Bad design on my part */
+    INTERPRETER_G(current_thread) = objval; /* But gets reset during RINIT -- Bad design on my part */
     PG(during_request_startup) = 0;
     PHP_INTERPRETER_END(objval)
 
-    /* Prime the sandbox to be played in */
+    /* Prime the thread to be played in */
     objval->active = 1;
 
     RETURN_TRUE;
@@ -215,7 +297,7 @@ PHP_METHOD(Sub_Interpreter, __call)
     objval = PHP_INTERPRETER_FETCH(this_ptr);
     if (!objval->active)
     {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Current sandbox is no longer active");
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Current thread is no longer active");
         RETURN_NULL();
     }
 
@@ -225,7 +307,7 @@ PHP_METHOD(Sub_Interpreter, __call)
 
         zend_first_try
         {
-            if (!RUNKIT_IS_CALLABLE(func_name, IS_CALLABLE_CHECK_NO_ACCESS, &name))
+            if (!INTERPRETER_IS_CALLABLE(func_name, IS_CALLABLE_CHECK_NO_ACCESS, &name))
             {
                 php_error_docref1(NULL TSRMLS_CC, name, E_WARNING, "Function not defined");
                 if (name)
@@ -249,11 +331,11 @@ PHP_METHOD(Sub_Interpreter, __call)
 
     if (bailed_out)
     {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed calling sandbox function");
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed calling thread function");
         RETURN_FALSE;
     }
 
-    PHP_SANDBOX_CROSS_SCOPE_ZVAL_COPY_CTOR(return_value);
+    PHP_THREAD_CROSS_SCOPE_ZVAL_COPY_CTOR(return_value);
 
     if (retval)
     {
@@ -284,7 +366,7 @@ static void php_interpreter_include_or_eval(INTERNAL_FUNCTION_PARAMETERS, int ty
     objval = PHP_INTERPRETER_FETCH(this_ptr);
     if (!objval->active)
     {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Current sandbox is no longer active");
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Current thread is no longer active");
         RETURN_NULL();
     }
 
@@ -328,7 +410,7 @@ static void php_interpreter_include_or_eval(INTERNAL_FUNCTION_PARAMETERS, int ty
     }
     zend_catch
     {
-        /* It's impossible to know what caused the failure, just deactive the sandbox now */
+        /* It's impossible to know what caused the failure, just deactive the thread now */
         objval->active = 0;
         bailed_out = 1;
     }
@@ -337,11 +419,11 @@ static void php_interpreter_include_or_eval(INTERNAL_FUNCTION_PARAMETERS, int ty
 
     if (bailed_out)
     {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Error executing sandbox code");
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Error executing thread code");
         RETURN_FALSE;
     }
 
-    PHP_SANDBOX_CROSS_SCOPE_ZVAL_COPY_CTOR(return_value);
+    PHP_THREAD_CROSS_SCOPE_ZVAL_COPY_CTOR(return_value);
 
     /* Don't confuse the memory manager */
     if (retval)
@@ -356,7 +438,7 @@ static void php_interpreter_include_or_eval(INTERNAL_FUNCTION_PARAMETERS, int ty
 
 /* {{{ proto void Sub_Interpreter::die(mixed message)
     MALIAS(exit)
-    Terminate a sandbox instance */
+    Terminate a thread instance */
 PHP_METHOD(Sub_Interpreter, die)
 {
     php_interpreter_object *objval;
@@ -377,28 +459,22 @@ PHP_METHOD(Sub_Interpreter, die)
     objval = PHP_INTERPRETER_FETCH(this_ptr);
     if (!objval->active)
     {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Current sandbox is no longer active");
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Current thread is no longer active");
         return;
     }
 
     PHP_INTERPRETER_BEGIN(objval)
-    zend_try
-    {
+    zend_try {
         if (message)
         {
-            if (Z_TYPE_P(message) == IS_LONG)
-            {
+            if (Z_TYPE_P(message) == IS_LONG) {
                 EG(exit_status) = Z_LVAL_P(message);
-            }
-            else
-            {
+            } else {
                 PHPWRITE(Z_STRVAL_P(message), Z_STRLEN_P(message));
             }
         }
         zend_bailout();
-    }
-    zend_catch
-    {
+    } zend_catch {
         /* goes without saying doesn't it? */
         objval->active = 0;
     }
