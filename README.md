@@ -29,6 +29,22 @@ For **RedHat** like distributions, CentOS...
 yum install libuv-devel php-pear -y
 ```
 
+To build **libuv** `.so` library from source
+
+```bash
+git clone https://github.com/libuv/libuv.git
+cd libuv
+cmake . -DBUILD_TESTING=ON
+cmake --build . --config Release
+ls -lh
+cp include/uv/* deps/include/uv
+cp include/* deps/include/
+cp Release/uv.la deps/lib
+cp Release/uv.so deps/lib
+```
+
+To build **ext-uv** `.so`
+
 ```bash
 git clone https://github.com/symplely/ext-uv.git
 cd ext-uv
