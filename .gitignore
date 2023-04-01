@@ -69,3 +69,6 @@ libuv-*/
 libuv-*.zip
 php-src-php-*/
 php-*/
+php_uv.dep
+uv.dep
+install.sh
