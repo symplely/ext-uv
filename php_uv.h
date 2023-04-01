@@ -145,7 +145,7 @@ typedef struct {
 typedef struct {
 	zend_object std;
 
-#if defined(ZTS) && PHP_VERSION_ID < 80000
+#if defined(ZTS)
 	void ***thread_ctx;
 #endif
 	int type;

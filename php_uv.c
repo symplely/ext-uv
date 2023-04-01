@@ -33,8 +33,8 @@
 #undef TSRMLS_CC
 #undef TSRMLS_D
 #undef TSRMLS_DC
-#undef TSRMLS_FETCH_FROM_CTX(ctx)
-#undef TSRMLS_SET_CTX(ctx)
+#undef TSRMLS_FETCH_FROM_CTX
+#undef TSRMLS_SET_CTX
 #define TSRMLS_C tsrm_ls
 #define TSRMLS_CC , TSRMLS_C
 #define TSRMLS_D void *tsrm_ls
@@ -75,6 +75,51 @@ ZEND_DECLARE_MODULE_GLOBALS(uv);
 
 #if defined(ZTS)
 #include "TSRM.h"
+#if TSRM_DEBUG
+#define TSRM_ERROR(args) tsrm_error args
+#define TSRM_SAFE_RETURN_RSRC(array, offset,range) \
+    { \
+        int unshuffled_offset = TSRM_UNSHUFFLE_RSRC_ID(offset);                                                          \
+                                                                                                                         \
+        if (offset == 0)                                                                                                 \
+        {                                                                                                                \
+            return &array;                                                                                               \
+        }                                                                                                                \
+        else if ((unshuffled_offset) >= 0 && (unshuffled_offset) < (range))                                              \
+        {                                                                                                                \
+            TSRM_ERROR((TSRM_ERROR_LEVEL_INFO, "Successfully fetched resource id %d for thread id %ld - 0x%0.8X",        \
+                        unshuffled_offset, (long)thread_resources->thread_id, array[unshuffled_offset]));                \
+            return array[unshuffled_offset];                                                                             \
+        }                                                                                                                \
+        else                                                                                                             \
+        {                                                                                                                \
+            TSRM_ERROR((TSRM_ERROR_LEVEL_ERROR, "Resource id %d is out of range (%d..%d)",                               \
+                        unshuffled_offset, TSRM_SHUFFLE_RSRC_ID(0), TSRM_SHUFFLE_RSRC_ID(thread_resources->count - 1))); \
+            return NULL;                                                                                                 \
+        }                                                                                                                \
+    }
+#else
+#define TSRM_ERROR(args)
+#define TSRM_SAFE_RETURN_RSRC(array, offset, range)   \
+    if (offset == 0)                                  \
+    {                                                 \
+        return &array;                                \
+    }                                                 \
+    else                                              \
+    {                                                 \
+        return array[TSRM_UNSHUFFLE_RSRC_ID(offset)]; \
+    }
+#endif
+
+#ifdef TSRM_WIN32
+static DWORD tls_key;
+#define tsrm_tls_set(what) TlsSetValue(tls_key, (void *)(what))
+#define tsrm_tls_get() TlsGetValue(tls_key)
+#else
+static pthread_key_t tls_key;
+#define tsrm_tls_set(what) pthread_setspecific(tls_key, (void *)(what))
+#define tsrm_tls_get() pthread_getspecific(tls_key)
+#endif
 
 typedef struct _tsrm_tls_entry tsrm_tls_entry;
 static MUTEX_T tsmm_mutex;
@@ -440,7 +485,7 @@ static int uv_parse_arg_object(zval *arg, zval **dest, int check_null, zend_clas
 #define PHP_UV_DEBUG_OBJ_DEL_REFCOUNT(hander, uv)
 #endif
 
-#if defined(ZTS) && PHP_VERSION_ID < 80000
+#if defined(ZTS)
 #define UV_FETCH_ALL(ls, id, type) ((type) (*((void ***) ls))[TSRM_UNSHUFFLE_RSRC_ID(id)])
 #define UV_FETCH_CTX(ls, id, type, element) (((type) (*((void ***) ls))[TSRM_UNSHUFFLE_RSRC_ID(id)])->element)
 #define UV_CG(ls, v)  UV_FETCH_CTX(ls, compiler_globals_id, zend_compiler_globals*, v)
@@ -1497,7 +1542,7 @@ static int php_uv_do_callback(zval *retval_ptr, php_uv_cb_t *callback, zval *par
 {
 	int error;
 
-#if defined(ZTS) && PHP_VERSION_ID < 80000
+#if defined(ZTS)
 	void *old = tsrm_set_interpreter_context(tsrm_ls);
 #endif
 
@@ -1514,7 +1559,7 @@ static int php_uv_do_callback(zval *retval_ptr, php_uv_cb_t *callback, zval *par
 		error = -1;
 	}
 
-#if defined(ZTS) && PHP_VERSION_ID < 80000
+#if defined(ZTS)
 	tsrm_set_interpreter_context(old);
 #endif
 
@@ -1525,7 +1570,7 @@ static int php_uv_do_callback2(zval *retval_ptr, php_uv_t *uv, zval *params, int
 {
 	int error = 0;
 
-#if defined(ZTS) && PHP_VERSION_ID < 80000
+#if defined(ZTS)
 	void *old = tsrm_set_interpreter_context(tsrm_ls);
 #endif
 	if (ZEND_FCI_INITIALIZED(uv->callback[type]->fci)) {
@@ -1543,7 +1588,7 @@ static int php_uv_do_callback2(zval *retval_ptr, php_uv_t *uv, zval *params, int
 		error = -2;
 	}
 
-#if defined(ZTS) && PHP_VERSION_ID < 80000
+#if defined(ZTS)
 	tsrm_set_interpreter_context(old);
 #endif
 	//zend_fcall_info_args_clear(&uv->callback[type]->fci, 0);
@@ -1577,7 +1622,7 @@ static int php_uv_do_callback2(zval *retval_ptr, php_uv_t *uv, zval *params, int
 	return error;
 }
 
-#if defined(ZTS) && PHP_VERSION_ID < 80000
+#if defined(ZTS)
 
 static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int param_count, enum php_uv_callback_type type)
 {
@@ -1978,7 +2023,7 @@ static void php_uv_async_cb(uv_async_t* handle)
 	zval_ptr_dtor(&retval);
 }
 
-#if defined(ZTS) && PHP_VERSION_ID < 80000
+#if defined(ZTS)
 static void php_uv_work_cb(uv_work_t* req)
 {
 	zval retval = {0};
@@ -5843,7 +5888,7 @@ PHP_FUNCTION(uv_async_send)
 */
 PHP_FUNCTION(uv_queue_work)
 {
-#if defined(ZTS) && PHP_VERSION_ID < 80000
+#if defined(ZTS)
 	int r;
 	php_uv_loop_t *loop;
 	php_uv_t *uv;
