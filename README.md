@@ -46,7 +46,8 @@ cp Release/uv.so deps/lib
 To build **ext-uv** `.so`
 
 ```bash
-git clone https://github.com/symplely/ext-uv.git
+# any branch except `master`, will contain more unfinished broken buggy development work
+git clone --branch 0.3x https://github.com/symplely/ext-uv.git
 cd ext-uv
 phpize
 ./configure --with-uv=$(readlink -f `pwd`/libuv)
