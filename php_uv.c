@@ -3408,6 +3408,12 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_uv_fs_scandir, 0, 0, 3)
 	ZEND_ARG_INFO(0, callback)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_uv_queue_work, 0, 0, 3)
+ZEND_ARG_INFO(0, loop)
+ZEND_ARG_INFO(0, callback)
+ZEND_ARG_INFO(0, callback)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_uv_fs_fstat, 0, 0, 2)
 	ZEND_ARG_INFO(0, loop)
 	ZEND_ARG_INFO(0, fd)
@@ -6611,9 +6617,7 @@ static zend_function_entry uv_functions[] = {
 	PHP_FE(uv_async_init,               arginfo_uv_async_init)
 	PHP_FE(uv_async_send,               arginfo_uv_async_send)
 	/* queue (does not work yet) */
-#if PHP_VERSION_ID < 80000
-	PHP_FE(uv_queue_work,               NULL)
-#endif
+	PHP_FE(uv_queue_work,               arginfo_uv_queue_work)
 	/* fs */
 	PHP_FE(uv_fs_open,                  arginfo_uv_fs_open)
 	PHP_FE(uv_fs_read,                  arginfo_uv_fs_read)
