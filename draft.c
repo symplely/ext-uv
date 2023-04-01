@@ -1,14 +1,11 @@
 
 
 #include "TSRM.h"
-#include "php_uv.h"
 #include "php_main.h"
 #include "ext/standard/info.h"
 #include "zend_smart_str.h"
 
 typedef struct _php_interpreter_object interpreter_object;
-typedef struct _tsrm_tls_entry tsrm_tls_entry;
-
 ZEND_BEGIN_MODULE_GLOBALS(interpreter)
     interpreter_object *current_thread;
 ZEND_END_MODULE_GLOBALS(interpreter)
@@ -40,150 +37,8 @@ struct _php_interpreter_object
     int parent_scope_namelen;
 };
 
-struct _tsrm_tls_entry
-{
-    void **storage;
-    int count;
-    THREAD_T thread_id;
-    tsrm_tls_entry *next;
-};
-
-typedef struct
-{
-    size_t size;
-    ts_allocate_ctor ctor;
-    ts_allocate_dtor dtor;
-    size_t fast_offset;
-    int done;
-} tsrm_resource_type;
-
 #define INTERPRETER_G(v) TSRMG(interpreter_globals_id, zend_interpreter_globals *, v)
 #define INTERPRETER_TSRMLS_C TSRMLS_C
-
-#define TSRMLS_FETCH_FROM_CTX(ctx) void ***tsrm_ls = (void ***)ctx
-#define TSRMLS_SET_CTX(ctx) ctx = (void ***)tsrm_get_ls_cache()
-
-/* New thread handlers */
-static tsrm_thread_begin_func_t tsrm_new_thread_begin_handler = NULL;
-static tsrm_thread_end_func_t tsrm_new_thread_end_handler = NULL;
-static tsrm_shutdown_func_t tsrm_shutdown_handler = NULL;
-
-static void allocate_new_resource(tsrm_tls_entry **thread_resources_ptr, THREAD_T thread_id)
-{ /*{{{*/
-    int i;
-
-    TSRM_ERROR((TSRM_ERROR_LEVEL_CORE, "Creating data structures for thread %x", thread_id));
-    (*thread_resources_ptr) = (tsrm_tls_entry *)malloc(TSRM_ALIGNED_SIZE(sizeof(tsrm_tls_entry)) + tsrm_reserved_size);
-    (*thread_resources_ptr)->storage = NULL;
-    if (id_count > 0) {
-        (*thread_resources_ptr)->storage = (void **)malloc(sizeof(void *) * id_count);
-    }
-
-    (*thread_resources_ptr)->count = id_count;
-    (*thread_resources_ptr)->thread_id = thread_id;
-    (*thread_resources_ptr)->next = NULL;
-
-    /* Set thread local storage to this new thread resources structure */
-    tsrm_tls_set(*thread_resources_ptr);
-    TSRMLS_CACHE = *thread_resources_ptr;
-
-    if (tsrm_new_thread_begin_handler) {
-        tsrm_new_thread_begin_handler(thread_id);
-    }
-
-    for (i = 0; i < id_count; i++) {
-        if (resource_types_table[i].done) {
-            (*thread_resources_ptr)->storage[i] = NULL;
-        } else {
-            if (resource_types_table[i].fast_offset) {
-                (*thread_resources_ptr)->storage[i] = (void *)(((char *)(*thread_resources_ptr)) + resource_types_table[i].fast_offset);
-            } else {
-                (*thread_resources_ptr)->storage[i] = (void *)malloc(resource_types_table[i].size);
-            }
-
-            if (resource_types_table[i].ctor) {
-                resource_types_table[i].ctor((*thread_resources_ptr)->storage[i]);
-            }
-        }
-    }
-
-    if (tsrm_new_thread_end_handler) {
-        tsrm_new_thread_end_handler(thread_id);
-    }
-
-    tsrm_mutex_unlock(tsmm_mutex);
-} /*}}}*/
-
-/* these 3 APIs should only be used by people that fully understand the threading model
- * used by PHP/Zend and the selected SAPI. */
-void *tsrm_new_interpreter_context(void);
-void *tsrm_set_interpreter_context(void *new_ctx);
-void tsrm_free_interpreter_context(void *context);
-
-/* frees an interpreter context.  You are responsible for making sure that
- * it is not linked into the TSRM hash, and not marked as the current interpreter */
-void tsrm_free_interpreter_context(void *context)
-{ /*{{{*/
-    tsrm_tls_entry *next, *thread_resources = (tsrm_tls_entry *)context;
-    int i;
-
-    while (thread_resources)
-    {
-        next = thread_resources->next;
-
-        for (i = 0; i < thread_resources->count; i++)
-        {
-            if (resource_types_table[i].dtor)
-            {
-                resource_types_table[i].dtor(thread_resources->storage[i]);
-            }
-        }
-        for (i = 0; i < thread_resources->count; i++)
-        {
-            if (!resource_types_table[i].fast_offset)
-            {
-                free(thread_resources->storage[i]);
-            }
-        }
-        free(thread_resources->storage);
-        free(thread_resources);
-        thread_resources = next;
-    }
-} /*}}}*/
-
-void *tsrm_set_interpreter_context(void *new_ctx)
-{ /*{{{*/
-    tsrm_tls_entry *current;
-
-    current = tsrm_tls_get();
-
-    /* TODO: unlink current from the global linked list, and replace it
-     * it with the new context, protected by mutex where/if appropriate */
-
-    /* Set thread local storage to this new thread resources structure */
-    tsrm_tls_set(new_ctx);
-
-    /* return old context, so caller can restore it when they're done */
-    return current;
-} /*}}}*/
-
-/* allocates a new interpreter context */
-void *tsrm_new_interpreter_context(void)
-{ /*{{{*/
-    tsrm_tls_entry *new_ctx, *current;
-    THREAD_T thread_id;
-
-    thread_id = tsrm_thread_id();
-    tsrm_mutex_lock(tsmm_mutex);
-
-    current = tsrm_tls_get();
-
-    allocate_new_resource(&new_ctx, thread_id);
-
-    /* switch back to the context that was in use prior to our creation
-     * of the new one */
-    return tsrm_set_interpreter_context(current);
-} /*}}}*/
 
 /* TODO: It'd be nice if objects and resources could make it across... */
 #define PHP_THREAD_CROSS_SCOPE_ZVAL_COPY_CTOR(pzv) \
