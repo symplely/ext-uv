@@ -97,6 +97,54 @@ ZEND_API void *zend_object_store_get_object(const zval *zobject TSRMLS_DC)
     }                                                                                              \
     }
 // #endif
+
+/* {{{ php_interpreter_call_int */
+inline static void php_interpreter_call_int(zval *func_name, char **pname, zval **pretval, zval *args, zval *return_value, void *prior_context TSRMLS_DC)
+{
+    HashPosition pos;
+	int i;
+	zval **tmpzval;
+	int argc = zend_hash_num_elements(Z_ARRVAL_P(args));
+	zval ***interpreter_args = safe_emalloc(sizeof(zval**), argc, 0);
+
+	for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(args), &pos), i = 0;
+		(zend_hash_get_current_data_ex(Z_ARRVAL_P(args), (void*)&tmpzval, &pos) == SUCCESS) && (i < argc);
+		zend_hash_move_forward_ex(Z_ARRVAL_P(args), &pos), i++) {
+		interpreter_args[i] = emalloc(sizeof(zval*));
+		MAKE_STD_ZVAL(*interpreter_args[i]);
+		**interpreter_args[i] = **tmpzval;
+            PHP_INTERPRETER_SCOPE_ZVAL_COPY_CTOR(*interpreter_args[i]);
+    }
+
+	/* Shouldn't be necessary */
+	argc = i;
+
+	/* Note: If this function is disabled by disable_functions or disable_classes,
+	 * The user will get a confusing error message about (null)() being disabled for security reasons on line 0
+	 * This will be fixable with a properly set EG(function_state_ptr)....just not yet
+	 */
+	if (call_user_function_ex(EG(function_table), NULL, func_name, pretval, argc, interpreter_args, 0, NULL TSRMLS_CC) == SUCCESS) {
+		if (*pretval) {
+			*return_value = **pretval;
+		} else {
+			RETVAL_TRUE;
+		}
+	} else {
+		php_error_docref1(NULL TSRMLS_CC, *pname, E_WARNING, "Unable to call function");
+		RETVAL_FALSE;
+	}
+	if (*pname) {
+		efree(*pname);
+		*pname = NULL;
+	}
+
+	for(i = 0; i < argc; i++) {
+		zval_ptr_dtor(interpreter_args[i]);
+		efree(interpreter_args[i]);
+	}
+	efree(interpreter_args);
+}
+
 /* {{{ proto void Sub_Interpreter::__construct(array options)
  * Options: see php_interpreter_ini_override()
  */
