@@ -40,7 +40,7 @@ fi
 if test $PHP_UV != "no"; then
     SOURCES=""
 
-    PHP_NEW_EXTENSION(uv, php_uv.c uv.c $SOURCES, $ext_shared)
+    PHP_NEW_EXTENSION(uv, php_uv.c uv.c $SOURCES, $ext_shared,, "-DZEND_ENABLE_STATIC_TSRMLS_CACHE=1")
 
     PHP_ADD_EXTENSION_DEP(uv, sockets, true)
 
