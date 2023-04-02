@@ -74,8 +74,32 @@ ZEND_DECLARE_MODULE_GLOBALS(uv);
 #define zend_internal_type_error(strict_types, ...) zend_type_error(__VA_ARGS__)
 
 #if defined(ZTS)
-#include "TSRM.h"
-#if TSRM_DEBUG
+/* Read a resource from a thread's resource storage */
+static int tsrm_error_level;
+static FILE *tsrm_error_file;
+/* Debug support */
+int tsrm_error(int level, const char *format, ...);
+int tsrm_error(int level, const char *format, ...)
+{ /*{{{*/
+    if (level <= tsrm_error_level)
+    {
+        va_list args;
+        int size;
+
+        fprintf(tsrm_error_file, "TSRM:  ");
+        va_start(args, format);
+        size = vfprintf(tsrm_error_file, format, args);
+        va_end(args);
+        fprintf(tsrm_error_file, "\n");
+        fflush(tsrm_error_file);
+        return size;
+    }
+    else
+    {
+        return 0;
+    }
+} /*}}}*/
+#if PHP_UV_DEBUG
 #define TSRM_ERROR(args) tsrm_error args
 #define TSRM_SAFE_RETURN_RSRC(array, offset,range) \
     { \
@@ -122,7 +146,6 @@ static pthread_key_t tls_key;
 #endif
 
 typedef struct _tsrm_tls_entry tsrm_tls_entry;
-static MUTEX_T tsmm_mutex;
 /* thread-safe memory manager mutex */
 static size_t tsrm_reserved_size = 0;
 static ts_rsrc_id id_count;
@@ -154,12 +177,12 @@ static tsrm_shutdown_func_t tsrm_shutdown_handler = NULL;
 
 /* these 3 APIs should only be used by people that fully understand the threading model
  * used by PHP/Zend and the selected SAPI. */
-static void *tsrm_new_interpreter_context(void);
-static void *tsrm_set_interpreter_context(void *new_ctx);
-static void tsrm_free_interpreter_context(void *context);
-static void allocate_new_resource(tsrm_tls_entry **thread_resources_ptr, THREAD_T thread_id);
+void *tsrm_new_interpreter_context(void);
+void *tsrm_set_interpreter_context(void *new_ctx);
+void tsrm_free_interpreter_context(void *context);
+static void allocate_new_resource(tsrm_tls_entry **thread_resources_ptr, THREAD_T thread_id, MUTEX_T tsmm_mutex);
 
-static void allocate_new_resource(tsrm_tls_entry **thread_resources_ptr, THREAD_T thread_id)
+static void allocate_new_resource(tsrm_tls_entry **thread_resources_ptr, THREAD_T thread_id, MUTEX_T tsmm_mutex)
 { /*{{{*/
     int i;
 
@@ -207,7 +230,7 @@ static void allocate_new_resource(tsrm_tls_entry **thread_resources_ptr, THREAD_
 
 /* frees an interpreter context.  You are responsible for making sure that
  * it is not linked into the TSRM hash, and not marked as the current interpreter */
-static void tsrm_free_interpreter_context(void *context)
+void tsrm_free_interpreter_context(void *context)
 { /*{{{*/
     tsrm_tls_entry *next, *thread_resources = (tsrm_tls_entry *)context;
     int i;
@@ -236,7 +259,7 @@ static void tsrm_free_interpreter_context(void *context)
     }
 } /*}}}*/
 
-static void *tsrm_set_interpreter_context(void *new_ctx)
+void *tsrm_set_interpreter_context(void *new_ctx)
 { /*{{{*/
     tsrm_tls_entry *current;
 
@@ -253,17 +276,19 @@ static void *tsrm_set_interpreter_context(void *new_ctx)
 } /*}}}*/
 
 /* allocates a new interpreter context */
-static void *tsrm_new_interpreter_context(void)
+void *tsrm_new_interpreter_context(void)
 { /*{{{*/
     tsrm_tls_entry *new_ctx, *current;
     THREAD_T thread_id;
+    MUTEX_T tsmm_mutex;
+    tsmm_mutex = tsrm_mutex_alloc();
 
     thread_id = tsrm_thread_id();
     tsrm_mutex_lock(tsmm_mutex);
 
     current = tsrm_tls_get();
 
-    allocate_new_resource(&new_ctx, thread_id);
+    allocate_new_resource(&new_ctx, thread_id, tsmm_mutex);
 
     /* switch back to the context that was in use prior to our creation
      * of the new one */
