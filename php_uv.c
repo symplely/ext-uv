@@ -1657,10 +1657,10 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
 	zend_function fn, *old_fn;
 
     if (ZEND_FCI_INITIALIZED(uv->callback[type]->fci)) {
+		tsrm_ls = tsrm_new_interpreter_context();
 #if PHP_VERSION_ID >= 80000
         ts_resource_ex(0, tsrm_thread_id());
 #endif
-		tsrm_ls = tsrm_new_interpreter_context();
 		old = tsrm_set_interpreter_context(tsrm_ls);
 
 		PG(expose_php) = 0;

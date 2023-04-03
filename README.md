@@ -23,6 +23,23 @@ For **Debian** like distributions, Ubuntu...
 apt-get install libuv1-dev php-pear -y
 ```
 
+The quickest way to get _ZTS_ PHP versions for **ubuntu** is by way of [shivammathur/php-builder](https://github.com/shivammathur/php-builder).
+
+```bash
+curl -sSLO https://github.com/shivammathur/php-builder/releases/latest/download/install.sh
+chmod a+x ./install.sh
+# ./install.sh <php-version> <release|debug> <nts|zts>
+./install.sh 8.2 debug zts
+```
+
+The above method installs all extensions, but the following extensions needs to be disabled in **PHP 8.2**.
+
+```bash
+sudo phpdismod xdebug apcu ast imagick memcache mongodb pdo_sqlsrv sqlsrv tidy
+# Should also be disabled in general, if getting segmentation faults, I find happening more when used.
+sudo phpdismod opcache
+```
+
 For **RedHat** like distributions, CentOS...
 
 ```bash
@@ -53,7 +70,7 @@ phpize
 ./configure --with-uv=$(readlink -f `pwd`/libuv)
 make
 make install
-# add `extension=uv.so` to your php.ini
+echo "extension=uv.so" >> "$(php -r 'echo php_ini_loaded_file();')"
 ```
 
 For **Windows** - needs Visual Studio 2019
