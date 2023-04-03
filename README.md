@@ -35,7 +35,7 @@ chmod a+x ./install.sh
 The above method installs all extensions, but the following extensions needs to be disabled in **PHP 8.2**.
 
 ```bash
-sudo phpdismod xdebug apcu ast imagick memcache mongodb pdo_sqlsrv sqlsrv tidy
+sudo phpdismod xdebug apcu ast imagick memcache mongodb pdo_sqlsrv sqlsrv tidy amqp memcached dba redis pdo_dblib
 # Should also be disabled in general, if getting segmentation faults, I find happening more when used.
 sudo phpdismod opcache
 ```
