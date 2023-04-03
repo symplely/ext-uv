@@ -1652,11 +1652,14 @@ static int php_uv_do_callback2(zval *retval_ptr, php_uv_t *uv, zval *params, int
 static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int param_count, enum php_uv_callback_type type)
 {
 	int error = 0;
-	void *tsrm_ls, *old;
+    void *tsrm_ls, *old;
 	zend_op_array *ops;
 	zend_function fn, *old_fn;
 
-	if (ZEND_FCI_INITIALIZED(uv->callback[type]->fci)) {
+    if (ZEND_FCI_INITIALIZED(uv->callback[type]->fci)) {
+#if PHP_VERSION_ID >= 80000
+        ts_resource_ex(0, tsrm_thread_id());
+#endif
 		tsrm_ls = tsrm_new_interpreter_context();
 		old = tsrm_set_interpreter_context(tsrm_ls);
 
@@ -1720,7 +1723,7 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
 		uv->callback[type]->fcc.function_handler = old_fn;
 
 		php_request_shutdown(NULL);
-		tsrm_set_interpreter_context(old);
+        tsrm_set_interpreter_context(old);
 		tsrm_free_interpreter_context(tsrm_ls);
 	} else {
 		error = -2;

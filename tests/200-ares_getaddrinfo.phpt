@@ -15,7 +15,7 @@ uv_getaddrinfo(uv_default_loop(), function($status, $names) {
     } else {
         echo "FAILED: 2nd parameter does not array" . PHP_EOL;
     }
-},"php.net", NULL, array(
+},"php.net", '80', array(
     "ai_family" => UV::AF_UNSPEC
 ));
 
@@ -26,7 +26,7 @@ uv_getaddrinfo(uv_default_loop(), function($status, $names) {
     } else {
         echo "FAILED: 2nd parameter does not array" . PHP_EOL;
     }
-},"php.net", NULL, array(
+},"php.net", '80', array(
     "ai_family" => UV::AF_UNSPEC
 ));
 

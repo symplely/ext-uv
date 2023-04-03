@@ -5,6 +5,8 @@
 #include "ext/standard/info.h"
 #include "zend_smart_str.h"
 
+#undef TSRMLS_FETCH
+#define TSRMLS_FETCH() void ***tsrm_ls = (void ***)ts_resource_ex(0, NULL)
 typedef struct _php_interpreter_object interpreter_object;
 ZEND_BEGIN_MODULE_GLOBALS(interpreter)
     interpreter_object *current_thread;
