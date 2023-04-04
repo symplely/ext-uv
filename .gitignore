@@ -72,3 +72,4 @@ php-*/
 php_uv.dep
 uv.dep
 install.sh
+config.h.in~
