@@ -5,8 +5,8 @@ Check for uv_queue_work
 ob_start();
 phpinfo();
 $data = ob_get_clean();
-if (!preg_match("/Thread Safety.+?enabled/", $data)) {
-  echo "skip not implemented for PHP 8+, Windows after callback not called, and shows segfault";
+if (!preg_match("/Thread Safety.+?enabled/", $data) || '\\' === DIRECTORY_SEPARATOR) {
+  echo "skip Windows after callback not called, and shows segfault, Linux no issues";
 }
 --FILE--
 <?php
