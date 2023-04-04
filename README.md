@@ -23,21 +23,13 @@ For **Debian** like distributions, Ubuntu...
 apt-get install libuv1-dev php-pear -y
 ```
 
-The quickest way to get _ZTS_ PHP versions for **ubuntu** is by way of [shivammathur/php-builder](https://github.com/shivammathur/php-builder).
+The quickest way to get _ZTS_ PHP versions for **ubuntu** is by way of [shivammathur/php-builder](https://github.com/shivammathur/php-builder). This method installs all extensions, to disable do: `sudo phpdismod xdebug`.
 
 ```bash
 curl -sSLO https://github.com/shivammathur/php-builder/releases/latest/download/install.sh
 chmod a+x ./install.sh
 # ./install.sh <php-version> <release|debug> <nts|zts>
 ./install.sh 8.2 debug zts
-```
-
-The above method installs all extensions, but the following extensions needs to be disabled in **PHP 8.2**.
-
-```bash
-sudo phpdismod xdebug apcu ast imagick memcache mongodb pdo_sqlsrv sqlsrv tidy amqp memcached dba redis pdo_dblib
-# Should also be disabled in general, if getting segmentation faults, I find happening more when used.
-sudo phpdismod opcache
 ```
 
 For **RedHat** like distributions, CentOS...

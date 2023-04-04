@@ -169,12 +169,6 @@ typedef struct
 
 /* The resource sizes table */
 static tsrm_resource_type *resource_types_table = NULL;
-
-extern sapi_module_struct sapi_module; /* true global */
-typedef size_t (*php_sapi_output_t)(const char *, size_t);
-static php_sapi_output_t php_sapi_output_function;
-static MUTEX_T php_uv_output_mutex = NULL;
-
 /* New thread handlers */
 static tsrm_thread_begin_func_t tsrm_new_thread_begin_handler = NULL;
 static tsrm_thread_end_func_t tsrm_new_thread_end_handler = NULL;
@@ -301,26 +295,6 @@ void *tsrm_new_interpreter_context(void)
      * of the new one */
     return tsrm_set_interpreter_context(current);
 } /*}}}*/
-
-static size_t php_uv_output_function(const char *str, size_t len)
-{
-    size_t result;
-
-    tsrm_mutex_lock(&php_uv_output_mutex);
-    result = php_sapi_output_function(str, len);
-    tsrm_mutex_unlock(&php_uv_output_mutex);
-
-    return result;
-}
-
-PHP_MSHUTDOWN_FUNCTION(uv)
-{
-    tsrm_mutex_free(php_uv_output_mutex);
-
-    sapi_module.ub_write = php_sapi_output_function;
-
-    return SUCCESS;
-}
 #endif
 #endif
 
@@ -1684,9 +1658,13 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
 	zend_function fn, *old_fn;
 
     if (ZEND_FCI_INITIALIZED(uv->callback[type]->fci)) {
-		tsrm_ls = tsrm_new_interpreter_context();
-		old = tsrm_set_interpreter_context(tsrm_ls);
-
+#if PHP_VERSION_ID >= 80000
+        ts_resource(0);
+        TSRMLS_CACHE_UPDATE();
+#else
+        tsrm_ls = tsrm_new_interpreter_context();
+        old = tsrm_set_interpreter_context(tsrm_ls);
+#endif
 		PG(expose_php) = 0;
 		PG(auto_globals_jit) = 0;
 
@@ -1746,9 +1724,13 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
 
 		uv->callback[type]->fcc.function_handler = old_fn;
 
-		php_request_shutdown(NULL);
+        php_request_shutdown(NULL);
+#if PHP_VERSION_ID >= 80000
+        ts_free_thread();
+#else
         tsrm_set_interpreter_context(old);
 		tsrm_free_interpreter_context(tsrm_ls);
+#endif
 	} else {
 		error = -2;
 	}
@@ -2084,12 +2066,6 @@ static void php_uv_work_cb(uv_work_t* req)
 	uv = (php_uv_t*)req->data;
 
 	PHP_UV_DEBUG_PRINT("work_cb\n");
-
-#if PHP_VERSION_ID >= 80000
-    ts_resource(0);
-    TSRMLS_FETCH_FROM_CTX(uv->thread_ctx);
-    tsrm_set_interpreter_context(tsrm_ls);
-#endif
 
     php_uv_do_callback3(&retval, uv, NULL, 0, PHP_UV_WORK_CB);
 }
@@ -3072,14 +3048,6 @@ PHP_MINIT_FUNCTION(uv)
 			}
 		}
 	}
-#endif
-
-#if PHP_VERSION_ID >= 80000 && defined(ZTS)
-    php_uv_output_mutex = tsrm_mutex_alloc();
-
-    php_sapi_output_function = sapi_module.ub_write;
-
-    sapi_module.ub_write = php_uv_output_function;
 #endif
 
     return SUCCESS;
@@ -6763,11 +6731,7 @@ zend_module_entry uv_module_entry = {
     "uv",
     uv_functions,  /* Functions */
     PHP_MINIT(uv), /* MINIT */
-#if PHP_VERSION_ID >= 80000 && defined(ZTS)
-    PHP_MSHUTDOWN(uv), /* MSHUTDOWN */
-#else
     NULL, /* MSHUTDOWN */
-#endif
     NULL,              /* RINIT */
     PHP_RSHUTDOWN(uv), /* RSHUTDOWN */
     PHP_MINFO(uv),     /* MINFO */
