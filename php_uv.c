@@ -1652,7 +1652,7 @@ static int php_uv_do_callback2(zval *retval_ptr, php_uv_t *uv, zval *params, int
 
 static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int param_count, enum php_uv_callback_type type)
 {
-	int error = 0;
+    int error = 0;
     void *tsrm_ls, *old;
 	zend_op_array *ops;
 	zend_function fn, *old_fn;
@@ -1666,7 +1666,7 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
         old = tsrm_set_interpreter_context(tsrm_ls);
 #endif
 		PG(expose_php) = 0;
-		PG(auto_globals_jit) = 0;
+		PG(auto_globals_jit) = 1;
 
 		php_request_startup();
 		EG(current_execute_data) = NULL;
@@ -1689,7 +1689,7 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
 		uv->callback[type]->fcc.called_scope = NULL;
 		uv->callback[type]->fcc.object = NULL;
 
-		if (!ZEND_USER_CODE(uv->callback[type]->fcc.function_handler->type)) {
+        if (!ZEND_USER_CODE(uv->callback[type]->fcc.function_handler->type)) {
 			return error = -2;
 		}
 
@@ -2063,8 +2063,6 @@ static void php_uv_work_cb(uv_work_t* req)
 	zval retval = {0};
 	php_uv_t *uv = (php_uv_t*)req->data;
 
-	uv = (php_uv_t*)req->data;
-
 	PHP_UV_DEBUG_PRINT("work_cb\n");
 
     php_uv_do_callback3(&retval, uv, NULL, 0, PHP_UV_WORK_CB);
@@ -2075,8 +2073,6 @@ static void php_uv_after_work_cb(uv_work_t* req, int status)
 	zval retval = {0};
 	php_uv_t *uv = (php_uv_t*)req->data;
 	TSRMLS_FETCH_FROM_CTX(uv->thread_ctx);
-
-	uv = (php_uv_t*)req->data;
 
 	PHP_UV_DEBUG_PRINT("after_work_cb\n");
 
@@ -6650,7 +6646,7 @@ static zend_function_entry uv_functions[] = {
 	/* async */
 	PHP_FE(uv_async_init,               arginfo_uv_async_init)
 	PHP_FE(uv_async_send,               arginfo_uv_async_send)
-	/* queue (does not work yet) */
+	/* queue */
 	PHP_FE(uv_queue_work,               arginfo_uv_queue_work)
 	/* fs */
 	PHP_FE(uv_fs_open,                  arginfo_uv_fs_open)
