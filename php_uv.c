@@ -2081,7 +2081,7 @@ static void php_uv_after_work_cb(uv_work_t* req, int status)
 	PHP_UV_DEBUG_OBJ_DEL_REFCOUNT(uv_after_work_cb, uv);
 
 	/* as uv_cancel inside destruct_uv will return EBUSY here as were still in the work callback, but freeing is safe here */
-	// clean_uv_handle(uv); /* this avoids a cancel */
+	clean_uv_handle(uv); /* this avoids a cancel */
 	OBJ_RELEASE(&uv->std);
 }
 #endif

@@ -5,7 +5,7 @@ Check for uv_queue_work
 ob_start();
 phpinfo();
 $data = ob_get_clean();
-if (!preg_match("/Thread Safety.+?enabled/", $data) /* || '\\' === DIRECTORY_SEPARATOR */) {
+if (!preg_match("/Thread Safety.+?enabled/", $data) || '\\' === DIRECTORY_SEPARATOR) {
   echo "skip Windows after callback not called, and shows segfault, Linux no issues";
 }
 --FILE--
