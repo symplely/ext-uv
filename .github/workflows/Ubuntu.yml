@@ -2,9 +2,9 @@ name: Ubuntu
 
 on:
   push:
-    branches: [ master ]
+    branches: [ 0.4x ]
   pull_request:
-    branches: [ master ]
+    branches: [ 0.4x ]
   workflow_dispatch:
 
 jobs:
