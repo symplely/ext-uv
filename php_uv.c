@@ -1375,7 +1375,7 @@ static zval php_uv_address_to_zval(const struct sockaddr *addr)
 		case AF_INET6:
 		{
 			a6 = (const struct sockaddr_in6 *)addr;
-            uv_inet_ntop(AF_INET6, &a4->sin_addr, ip, sizeof ip);
+            uv_inet_ntop(AF_INET6, &a6->sin6_addr, ip, sizeof ip);
             port = ntohs(a6->sin6_port);
 
 			add_assoc_string_ex(&tmp, ZEND_STRL("address"), ip);
