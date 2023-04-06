@@ -3059,19 +3059,22 @@ PHP_MINIT_FUNCTION(uv)
 
 PHP_RSHUTDOWN_FUNCTION(uv)
 {
-	if (UV_G(default_loop)) {
+    PHP_UV_DEBUG_PRINT("rshutdown - start\n");
+    if (UV_G(default_loop)) {
 		uv_loop_t *loop = &UV_G(default_loop)->loop;
 
 		/* for proper destruction: close all handles, let libuv call close callback and then close and free the loop */
 		uv_stop(loop); /* in case we longjmp()'ed ... */
 		uv_run(loop, UV_RUN_DEFAULT); /* invalidate the stop ;-) */
 
-		uv_walk(loop, destruct_uv_loop_walk_cb, NULL);
+        PHP_UV_DEBUG_PRINT("rshutdown - walk\n");
+        uv_walk(loop, destruct_uv_loop_walk_cb, NULL);
 		uv_run(loop, UV_RUN_DEFAULT);
 		uv_loop_close(loop);
 		OBJ_RELEASE(&UV_G(default_loop)->std);
 	}
 
+    PHP_UV_DEBUG_PRINT("rshutdown - exit\n");
 	return SUCCESS;
 }
 
