@@ -19,3 +19,6 @@
 
 del libuv-%LIBUV_VER%.zip
 rmdir /S /Q libuv-%LIBUV_VER%
+copy /Y "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64\UserEnv.Lib" deps\lib\
+copy /Y "C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\UserEnv.h" deps\include\
+copy /Y C:\Windows\SysWOW64\userenv.dll deps\bin\
