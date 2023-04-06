@@ -74,31 +74,8 @@ ZEND_DECLARE_MODULE_GLOBALS(uv);
 #define zend_internal_type_error(strict_types, ...) zend_type_error(__VA_ARGS__)
 
 #if defined(ZTS)
-/* Read a resource from a thread's resource storage */
-static int tsrm_error_level;
-static FILE *tsrm_error_file;
 /* Debug support */
-int tsrm_error(int level, const char *format, ...);
-int tsrm_error(int level, const char *format, ...)
-{ /*{{{*/
-    if (level <= tsrm_error_level)
-    {
-        va_list args;
-        int size;
-
-        fprintf(tsrm_error_file, "TSRM:  ");
-        va_start(args, format);
-        size = vfprintf(tsrm_error_file, format, args);
-        va_end(args);
-        fprintf(tsrm_error_file, "\n");
-        fflush(tsrm_error_file);
-        return size;
-    }
-    else
-    {
-        return 0;
-    }
-} /*}}}*/
+extern int tsrm_error(int level, const char *format, ...);
 #if PHP_UV_DEBUG
 #define TSRM_ERROR(args) tsrm_error args
 #define TSRM_SAFE_RETURN_RSRC(array, offset,range) \
