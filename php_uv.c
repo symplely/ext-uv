@@ -74,8 +74,31 @@ ZEND_DECLARE_MODULE_GLOBALS(uv);
 #define zend_internal_type_error(strict_types, ...) zend_type_error(__VA_ARGS__)
 
 #if defined(ZTS)
+/* Read a resource from a thread's resource storage */
+static int tsrm_error_level;
+static FILE *tsrm_error_file;
 /* Debug support */
-extern int tsrm_error(int level, const char *format, ...);
+int tsrm_error(int level, const char *format, ...);
+int tsrm_error(int level, const char *format, ...)
+{ /*{{{*/
+    if (level <= tsrm_error_level)
+    {
+        va_list args;
+        int size;
+
+        fprintf(tsrm_error_file, "TSRM:  ");
+        va_start(args, format);
+        size = vfprintf(tsrm_error_file, format, args);
+        va_end(args);
+        fprintf(tsrm_error_file, "\n");
+        fflush(tsrm_error_file);
+        return size;
+    }
+    else
+    {
+        return 0;
+    }
+} /*}}}*/
 #if PHP_UV_DEBUG
 #define TSRM_ERROR(args) tsrm_error args
 #define TSRM_SAFE_RETURN_RSRC(array, offset,range) \
@@ -1688,11 +1711,14 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
 			if (zend_call_function(&uv->callback[type]->fci, &uv->callback[type]->fcc) != SUCCESS) {
 				error = -1;
 			}
+            PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - done\n");
 		} zend_catch {
-			error = -1;
-		} zend_end_try();
+            PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - error\n");
+            error = -1;
+        }
+        zend_end_try();
 
-		// after PHP 7.4 this is arena allocated and automatically freed
+        // after PHP 7.4 this is arena allocated and automatically freed
 #if PHP_VERSION_ID < 70400
 		if (ops->run_time_cache && !ops->function_name) {
 			efree(ops->run_time_cache);
@@ -1701,11 +1727,15 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
 
 		uv->callback[type]->fcc.function_handler = old_fn;
 
+        PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - shutdown\n");
         php_request_shutdown(NULL);
 #if PHP_VERSION_ID >= 80000
+        PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - free\n");
         ts_free_thread();
 #else
+        PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - set\n");
         tsrm_set_interpreter_context(old);
+        PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - free\n");
 		tsrm_free_interpreter_context(tsrm_ls);
 #endif
 	} else {
@@ -1714,6 +1744,7 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
 
 	//zend_fcall_info_args_clear(&uv->callback[type]->fci, 0);
 
+        PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - exit\n");
 	return error;
 }
 #endif
