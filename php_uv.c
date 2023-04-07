@@ -174,8 +174,6 @@ static tsrm_thread_begin_func_t tsrm_new_thread_begin_handler = NULL;
 static tsrm_thread_end_func_t tsrm_new_thread_end_handler = NULL;
 static tsrm_shutdown_func_t tsrm_shutdown_handler = NULL;
 
-void php_uv_request_shutdown(void *dummy);
-static void php_uv_free_request_globals(void);
 /* these 3 APIs should only be used by people that fully understand the threading model
  * used by PHP/Zend and the selected SAPI. */
 void *tsrm_new_interpreter_context(void);
@@ -1652,8 +1650,10 @@ static int php_uv_do_callback2(zval *retval_ptr, php_uv_t *uv, zval *params, int
 
 #if defined(ZTS)
 
+#ifdef PHP_WIN32
+void php_uv_request_shutdown(void *dummy);
+static void php_uv_free_request_globals(void);
 #define NUM_TRACK_VARS 6
-
 /* {{{ php_uv_free_request_globals
  */
 static void php_uv_free_request_globals(void)
@@ -1808,6 +1808,7 @@ void php_uv_request_shutdown(void *dummy)
 
     PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - exit\n");
 }
+#endif
 
 static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int param_count, enum php_uv_callback_type type)
 {
