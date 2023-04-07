@@ -1727,8 +1727,10 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
 
 		uv->callback[type]->fcc.function_handler = old_fn;
 
+#ifndef PHP_WIN32
         PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - shutdown\n");
         php_request_shutdown(NULL);
+#endif
 #if PHP_VERSION_ID >= 80000
         PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - free\n");
         ts_free_thread();
