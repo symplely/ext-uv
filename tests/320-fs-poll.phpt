@@ -1,7 +1,5 @@
 --TEST--
 Check for fs poll
---SKIPIF--
-<?php if ('\\' === \DIRECTORY_SEPARATOR) print "Skip, broken on Windows"; ?>
 --FILE--
 <?php
 define("FIXTURE_PATH", dirname(__FILE__) . "/fixtures/poll");

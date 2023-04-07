@@ -1375,7 +1375,7 @@ static zval php_uv_address_to_zval(const struct sockaddr *addr)
 		case AF_INET6:
 		{
 			a6 = (const struct sockaddr_in6 *)addr;
-            uv_inet_ntop(AF_INET6, &a4->sin_addr, ip, sizeof ip);
+            uv_inet_ntop(AF_INET6, &a6->sin6_addr, ip, sizeof ip);
             port = ntohs(a6->sin6_port);
 
 			add_assoc_string_ex(&tmp, ZEND_STRL("address"), ip);
@@ -1650,6 +1650,166 @@ static int php_uv_do_callback2(zval *retval_ptr, php_uv_t *uv, zval *params, int
 
 #if defined(ZTS)
 
+#ifdef PHP_WIN32
+void php_uv_request_shutdown(void *dummy);
+static void php_uv_free_request_globals(void);
+#define NUM_TRACK_VARS 6
+/* {{{ php_uv_free_request_globals
+ */
+static void php_uv_free_request_globals(void)
+{
+    if (PG(last_error_message))
+    {
+        free(PG(last_error_message));
+        PG(last_error_message) = NULL;
+    }
+    if (PG(last_error_file))
+    {
+        free(PG(last_error_file));
+        PG(last_error_file) = NULL;
+    }
+    if (PG(php_sys_temp_dir))
+    {
+        efree(PG(php_sys_temp_dir));
+        PG(php_sys_temp_dir) = NULL;
+    }
+}
+/* }}} */
+
+/* {{{ php_uv_request_shutdown */
+void php_uv_request_shutdown(void *dummy)
+{
+    bool report_memleaks;
+
+    EG(flags) |= EG_FLAGS_IN_SHUTDOWN;
+
+    report_memleaks = PG(report_memleaks);
+
+    /* EG(current_execute_data) points into nirvana and therefore cannot be safely accessed
+     * inside zend_executor callback functions.
+     */
+    EG(current_execute_data) = NULL;
+
+    /* 1. Call all possible shutdown functions registered with register_shutdown_function() */
+    if (PG(modules_activated))
+    {
+        php_call_shutdown_functions();
+    }
+
+    /* 2. Call all possible __destruct() functions */
+    zend_try
+    {
+        zend_call_destructors();
+    }
+    zend_end_try();
+
+    /* 3. Flush all output buffers */
+    zend_try
+    {
+        php_output_end_all();
+    }
+    zend_end_try();
+
+    /* 4. Reset max_execution_time (no longer executing php code after response sent) */
+    zend_try
+    {
+        zend_unset_timeout();
+    }
+    zend_end_try();
+
+    /* 5. Call all extensions RSHUTDOWN functions */
+    if (PG(modules_activated))
+    {
+        PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - zend_deactivate_modules\n");
+        zend_deactivate_modules();
+    }
+
+    /* 6. Shutdown output layer (send the set HTTP headers, cleanup output handlers, etc.) */
+    zend_try
+    {
+        PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - php_output_deactivate\n");
+        php_output_deactivate();
+    }
+    zend_end_try();
+
+    /* 7. Free shutdown functions */
+    if (PG(modules_activated))
+    {
+        PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - php_free_shutdown_functions\n");
+        php_free_shutdown_functions();
+    }
+
+    /* 8. Destroy super-globals */
+    PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - zval_ptr_dtor\n");
+    zend_try
+    {
+        int i;
+
+        for (i = 0; i < NUM_TRACK_VARS; i++)
+        {
+                zval_ptr_dtor(&PG(http_globals)[i]);
+        }
+    }
+    zend_end_try();
+
+    PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - zend_deactivate\n");
+    /* 9. Shutdown scanner/executor/compiler and restore ini entries */
+    zend_deactivate();
+
+    /* 10. free request-bound globals */
+    php_uv_free_request_globals();
+
+    /* 11. Call all extensions post-RSHUTDOWN functions */
+    zend_try
+    {
+        PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - zend_post_deactivate_modules\n");
+        zend_post_deactivate_modules();
+    }
+    zend_end_try();
+
+    PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - sapi_deactivate_destroy\n");
+    /* free SAPI stuff */
+    sapi_deactivate_destroy();
+
+    PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - virtual_cwd_deactivate\n");
+    /* 13. free virtual CWD memory */
+    virtual_cwd_deactivate();
+
+    PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - zend_arena_destroy\n");
+    /* 15. Free Willy (here be crashes) */
+    zend_arena_destroy(CG(arena));
+    PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - zend_interned_strings_deactivate\n");
+    zend_interned_strings_deactivate();
+    zend_try
+    {
+        PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - shutdown_memory_manager\n");
+        shutdown_memory_manager(CG(unclean_shutdown) || !report_memleaks, 0);
+    }
+    zend_end_try();
+
+    /* Reset memory limit, as the reset during INI_STAGE_DEACTIVATE may have failed.
+     * At this point, no memory beyond a single chunk should be in use. */
+    zend_set_memory_limit(PG(memory_limit));
+
+    /* 16. Deactivate Zend signals */
+#ifdef ZEND_SIGNALS
+    zend_signal_deactivate();
+#endif
+
+    if (PG(com_initialized))
+    {
+        CoUninitialize();
+        PG(com_initialized) = 0;
+    }
+
+#ifdef HAVE_DTRACE
+    DTRACE_REQUEST_SHUTDOWN(SAFE_FILENAME(SG(request_info).path_translated), SAFE_FILENAME(SG(request_info).request_uri), (char *)SAFE_FILENAME(SG(request_info).request_method));
+#endif /* HAVE_DTRACE */
+
+    PHP_UV_DEBUG_PRINT("php_uv_request_shutdown - exit\n");
+}
+#endif
+
 static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int param_count, enum php_uv_callback_type type)
 {
     int error = 0;
@@ -1711,11 +1871,14 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
 			if (zend_call_function(&uv->callback[type]->fci, &uv->callback[type]->fcc) != SUCCESS) {
 				error = -1;
 			}
+            PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - done\n");
 		} zend_catch {
-			error = -1;
-		} zend_end_try();
+            PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - error\n");
+            error = -1;
+        }
+        zend_end_try();
 
-		// after PHP 7.4 this is arena allocated and automatically freed
+        // after PHP 7.4 this is arena allocated and automatically freed
 #if PHP_VERSION_ID < 70400
 		if (ops->run_time_cache && !ops->function_name) {
 			efree(ops->run_time_cache);
@@ -1724,11 +1887,19 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
 
 		uv->callback[type]->fcc.function_handler = old_fn;
 
+        PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - shutdown\n");
+#ifndef PHP_WIN32
         php_request_shutdown(NULL);
+#else
+        php_uv_request_shutdown(NULL);
+#endif
 #if PHP_VERSION_ID >= 80000
+        PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - free\n");
         ts_free_thread();
 #else
+        PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - set\n");
         tsrm_set_interpreter_context(old);
+        PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - free\n");
 		tsrm_free_interpreter_context(tsrm_ls);
 #endif
 	} else {
@@ -1737,6 +1908,7 @@ static int php_uv_do_callback3(zval *retval_ptr, php_uv_t *uv, zval *params, int
 
 	//zend_fcall_info_args_clear(&uv->callback[type]->fci, 0);
 
+        PHP_UV_DEBUG_PRINT("php_uv_do_callback3 - exit\n");
 	return error;
 }
 #endif
@@ -3051,19 +3223,22 @@ PHP_MINIT_FUNCTION(uv)
 
 PHP_RSHUTDOWN_FUNCTION(uv)
 {
-	if (UV_G(default_loop)) {
+    PHP_UV_DEBUG_PRINT("rshutdown - start\n");
+    if (UV_G(default_loop)) {
 		uv_loop_t *loop = &UV_G(default_loop)->loop;
 
 		/* for proper destruction: close all handles, let libuv call close callback and then close and free the loop */
 		uv_stop(loop); /* in case we longjmp()'ed ... */
 		uv_run(loop, UV_RUN_DEFAULT); /* invalidate the stop ;-) */
 
-		uv_walk(loop, destruct_uv_loop_walk_cb, NULL);
+        PHP_UV_DEBUG_PRINT("rshutdown - walk\n");
+        uv_walk(loop, destruct_uv_loop_walk_cb, NULL);
 		uv_run(loop, UV_RUN_DEFAULT);
 		uv_loop_close(loop);
 		OBJ_RELEASE(&UV_G(default_loop)->std);
 	}
 
+    PHP_UV_DEBUG_PRINT("rshutdown - exit\n");
 	return SUCCESS;
 }
 
