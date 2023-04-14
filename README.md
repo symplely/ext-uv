@@ -65,7 +65,7 @@ make install
 echo "extension=uv.so" >> "$(php -r 'echo php_ini_loaded_file();')"
 ```
 
-For **Windows** - needs Visual Studio 2019
+For **Windows** - needs [Visual Studio 2019](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019)
 
 ```bat
 git clone https://github.com/symplely/ext-uv.git
