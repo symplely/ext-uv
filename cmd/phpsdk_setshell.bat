@@ -81,11 +81,10 @@ if 15 gtr %PHP_SDK_VS_NUM% (
 	)
 	for /f "tokens=2*" %%a in ('reg query !TMPKEY! /v ProductDir') do set PHP_SDK_VC_DIR=%%b
 ) else (
-	rem build the version range, e.g. "[15,16)"
+	rem build the version range, e.g. "[15,16]"
 	set /a PHP_SDK_VS_RANGE=PHP_SDK_VS_NUM + 1
-	set PHP_SDK_VS_RANGE="[%PHP_SDK_VS_NUM%,!PHP_SDK_VS_RANGE%!)"
-
-	for /f "tokens=1* delims=: " %%a in ('%~dp0\vswhere -nologo -version !PHP_SDK_VS_RANGE! -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath -format text') do (
+	set PHP_SDK_VS_RANGE="[%PHP_SDK_VS_NUM%,!%PHP_SDK_VS_RANGE%!]"
+	for /f "tokens=1* delims=: " %%a in ('%~dp0\vswhere -nologo -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath -format text -prerelease') do (
 		set PHP_SDK_VC_DIR=%%b\VC
 	)
 	if not exist "!PHP_SDK_VC_DIR!" (
@@ -143,15 +142,15 @@ if 15 gtr %PHP_SDK_VS_NUM% (
 
 if /i "%PHP_SDK_ARCH%"=="x64" (
 	if 15 gtr %PHP_SDK_VS_NUM% (
-		set PHP_SDK_VS_SHELL_CMD="!PHP_SDK_VC_DIR!\vcvarsall.bat" amd64
+		set PHP_SDK_VS_SHELL_CMD="!PHP_SDK_VC_DIR!\vcvarsall.bat" amd64 -vcvars_ver=%vcvars_ver%
 	) else (
-		set PHP_SDK_VS_SHELL_CMD="!PHP_SDK_VC_DIR!\Auxiliary\Build\vcvarsall.bat" amd64
+		set PHP_SDK_VS_SHELL_CMD="!PHP_SDK_VC_DIR!\Auxiliary\Build\vcvarsall.bat" amd64 -vcvars_ver=%vcvars_ver%
 	)
 ) else (
 	if 15 gtr %PHP_SDK_VS_NUM% (
-		set PHP_SDK_VS_SHELL_CMD="!PHP_SDK_VC_DIR!\vcvarsall.bat" x86
+		set PHP_SDK_VS_SHELL_CMD="!PHP_SDK_VC_DIR!\vcvarsall.bat" x86 -vcvars_ver=%vcvars_ver%
 	) else (
-		set PHP_SDK_VS_SHELL_CMD="!PHP_SDK_VC_DIR!\Auxiliary\Build\vcvarsall.bat" x86
+		set PHP_SDK_VS_SHELL_CMD="!PHP_SDK_VC_DIR!\Auxiliary\Build\vcvarsall.bat" x86 -vcvars_ver=%vcvars_ver%
 	)
 )
 
